@@ -13,4 +13,4 @@ PipelinesTestLogger can report test results automatically to the CI build.
 
 ## Credit
 
-This project is based on [appveyor.testlogger](https://github.com/spekt/appveyor.testlogger).
+This project is based on [appveyor.testlogger](https://github.com/spekt/appveyor.testlogger) and [xunit](https://github.com/xunit/xunit/blob/master/src/xunit.runner.reporters/VstsReporter.cs).

@@ -23,90 +23,77 @@ namespace PipelinesTestLogger
         /// </summary>
         public const string FriendlyName = "PipelinesTestLogger";
 
-        private LoggerQueue queue;
+        private LoggerQueue _queue;
 
-        /// <summary>
-        /// Initializes the Test Logger.
-        /// </summary>
-        /// <param name="events">Events that can be registered for.</param>
-        /// <param name="testRunDirectory">Test Run Directory</param>
         public void Initialize(TestLoggerEvents events, string testRunDirectory)
         {
-            NotNull(events, nameof(events));
-
-            string appveyorApiUrl = Environment.GetEnvironmentVariable("APPVEYOR_API_URL");
-
-            if (appveyorApiUrl == null)
+            if(!GetRequiredVariable("SYSTEM_ACCESSTOKEN", out string accessToken)
+                || !GetRequiredVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI", out string collectionUri)
+                || !GetRequiredVariable("SYSTEM_TEAMPROJECT", out string teamProject)
+                || !GetRequiredVariable("BUILD_BUILDID", out string buildId))
             {
-                Console.WriteLine("PipelinesTestLogger: Not an AppVeyor run.  Environment variable 'APPVEYOR_API_URL' not set.");
                 return;
             }
 
-#if DEBUG
-            Console.WriteLine("PipelinesTestLogger: Logging to {0}", appveyorApiUrl);
-#endif
-
-            queue = new LoggerQueue(appveyorApiUrl);
+            string apiUrl = $"{collectionUri}{teamProject}/_apis/test/runs/{buildId}/results?api-version=5.0-preview.5";
+            _queue = new LoggerQueue(accessToken, apiUrl);
 
             // Register for the events.
-            events.TestRunMessage += this.TestMessageHandler;
-            events.TestResult += this.TestResultHandler;
-            events.TestRunComplete += this.TestRunCompleteHandler;
+            events.TestRunMessage += TestMessageHandler;
+            events.TestResult += TestResultHandler;
+            events.TestRunComplete += TestRunCompleteHandler;
         }
 
-        /// <summary>
-        /// Called when a test message is received.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="e">
-        /// Event args
-        /// </param>
+        private bool GetRequiredVariable(string name, out string value)
+        {
+            value = Environment.GetEnvironmentVariable(name);
+            if(string.IsNullOrEmpty(value))
+            {
+                Console.WriteLine($"PipelinesTestLogger: Not an Azure Pipelines test run, environment variable { name } not set.");
+                return false;
+            }
+            return true;
+        }
+
         private void TestMessageHandler(object sender, TestRunMessageEventArgs e)
         {
-            NotNull(sender, nameof(sender));
-            NotNull(e, nameof(e));
-
             // Add code to handle message
         }
 
-        /// <summary>
-        /// Called when a test result is received.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="e">
-        /// The eventArgs.
-        /// </param>
         private void TestResultHandler(object sender, TestResultEventArgs e)
         {
-            string name = e.Result.TestCase.FullyQualifiedName;
             string filename = string.IsNullOrEmpty(e.Result.TestCase.Source) ? string.Empty : Path.GetFileName(e.Result.TestCase.Source);
-            string outcome = e.Result.Outcome.ToString();
 
-            var testResult = new Dictionary<string, string>();
-            testResult.Add("testName", name);
-            testResult.Add("testFramework", e.Result.TestCase.ExecutorUri.ToString());
-            testResult.Add("outcome", outcome);
+            Dictionary<string, string> testResult = new Dictionary<string, string>()
+            {
+                { "testCaseTitle", e.Result.TestCase.DisplayName },
+                { "automatedTestName", e.Result.TestCase.FullyQualifiedName },
+                { "outcome", e.Result.Outcome.ToString() },
+                { "state", "Completed" },
+                { "automatedTestType", "UnitTest" },
+                { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" }, // This is used in the sample response and also appears in web searches
+            };
 
             if (!string.IsNullOrEmpty(filename))
             {
-                testResult.Add("fileName", filename);
+                testResult.Add("automatedTestStorage", filename);
             }
 
             if (e.Result.Outcome == TestOutcome.Passed || e.Result.Outcome == TestOutcome.Failed)
             {
                 int duration = Convert.ToInt32(e.Result.Duration.TotalMilliseconds);
+                testResult.Add("durationInMs", duration.ToString(CultureInfo.InvariantCulture));
+
+                string errorStackTrace = e.Result.ErrorStackTrace;
+                if (!string.IsNullOrEmpty(errorStackTrace))
+                {
+                    testResult.Add("stackTrace", errorStackTrace);
+                }
 
                 string errorMessage = e.Result.ErrorMessage;
-                string errorStackTrace = e.Result.ErrorStackTrace;
-
                 StringBuilder stdErr = new StringBuilder();
                 StringBuilder stdOut = new StringBuilder();
-
-                foreach (var m in e.Result.Messages)
+                foreach (TestResultMessage m in e.Result.Messages)
                 {
                     if (TestResultMessage.StandardOutCategory.Equals(m.Category, StringComparison.OrdinalIgnoreCase))
                     {
@@ -118,23 +105,9 @@ namespace PipelinesTestLogger
                     }
                 }
 
-                testResult.Add("durationMilliseconds", duration.ToString(CultureInfo.InvariantCulture));
-
-                if (!string.IsNullOrEmpty(errorMessage))
+                if (!string.IsNullOrEmpty(errorMessage) || stdErr.Length > 0 || stdOut.Length > 0)
                 {
-                    testResult.Add("ErrorMessage", errorMessage);
-                }
-                if (!string.IsNullOrEmpty(errorStackTrace))
-                {
-                    testResult.Add("ErrorStackTrace", errorStackTrace);
-                }
-                if (!string.IsNullOrEmpty(stdOut.ToString()))
-                {
-                    testResult.Add("StdOut", stdOut.ToString());
-                }
-                if (!string.IsNullOrEmpty(stdErr.ToString()))
-                {
-                    testResult.Add("StdErr", stdErr.ToString());
+                    testResult.Add("errorMessage", $"{errorMessage}\n{stdErr}\n{stdOut}");
                 }
             }
             else
@@ -145,28 +118,18 @@ namespace PipelinesTestLogger
             PublishTestResult(testResult);
         }
 
-
-        /// <summary>
-        /// Called when a test run is completed.
-        /// </summary>
-        /// <param name="sender">
-        /// The sender.
-        /// </param>
-        /// <param name="e">
-        /// Test run complete events arguments.
-        /// </param>
         private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e)
         {
-            queue.Flush();
+            _queue.Flush();
         }
 
         private void PublishTestResult(Dictionary<string, string> testResult)
         {
-            var jsonSb = new StringBuilder();
+            StringBuilder jsonSb = new StringBuilder();
             jsonSb.Append("{");
 
             bool firstItem = true;
-            foreach (var field in testResult)
+            foreach (KeyValuePair<string, string> field in testResult)
             {
                 if (!firstItem)
                 {
@@ -179,17 +142,7 @@ namespace PipelinesTestLogger
 
             jsonSb.Append("}");
 
-            queue.Enqueue(jsonSb.ToString());
-        }
-
-        private static T NotNull<T>(T arg, string parameterName)
-        {
-            if (arg == null)
-            {
-                throw new ArgumentNullException(parameterName);
-            }
-
-            return arg;
+            _queue.Enqueue(jsonSb.ToString());
         }
     }
 }

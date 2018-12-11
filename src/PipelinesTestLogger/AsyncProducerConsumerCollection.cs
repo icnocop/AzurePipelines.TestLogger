@@ -23,7 +23,7 @@ namespace PipelinesTestLogger
                 waiting.Clear();
             }
 
-            foreach (var tcs in allWaiting)
+            foreach (TaskCompletionSource<T[]> tcs in allWaiting)
             {
                 tcs.TrySetResult(new T[] { });
             }
@@ -34,8 +34,14 @@ namespace PipelinesTestLogger
             TaskCompletionSource<T[]> tcs = null;
             lock (collection)
             {
-                if (waiting.Count > 0) tcs = waiting.Dequeue();
-                else collection.Enqueue(item);
+                if (waiting.Count > 0)
+                {
+                    tcs = waiting.Dequeue();
+                }
+                else
+                {
+                    collection.Enqueue(item);
+                }
             }
 
             tcs?.TrySetResult(new [] {item});
@@ -51,13 +57,13 @@ namespace PipelinesTestLogger
             {
                 if (collection.Count > 0)
                 {
-                    var result = Task.FromResult(collection.ToArray());
+                    Task<T[]> result = Task.FromResult(collection.ToArray());
                     collection.Clear();
                     return result;
                 }
                 else if (canceled == false)
                 {
-                    var tcs = new TaskCompletionSource<T[]>();
+                    TaskCompletionSource<T[]> tcs = new TaskCompletionSource<T[]>();
                     waiting.Enqueue(tcs);
                     return tcs.Task;
                 }
