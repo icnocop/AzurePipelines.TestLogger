@@ -1,8 +1,6 @@
-﻿using System;
+﻿using PipelinesTestLogger.Json;
+using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,26 +8,23 @@ namespace PipelinesTestLogger
 {
     internal class LoggerQueue
     {
-        private static readonly HttpClient _client = new HttpClient();
-
-        private readonly string _apiUrl;
+        private readonly ApiClient _apiClient;
+        private readonly string _buildId;
+        private readonly string _jobName;
 
         private readonly AsyncProducerConsumerCollection<string> _queue = new AsyncProducerConsumerCollection<string>();
         private readonly Task _consumeTask;
         private readonly CancellationTokenSource _consumeTaskCancellationSource = new CancellationTokenSource();
-
+        
+        private string _runEndpoint = null;
         private int totalEnqueued = 0;
         private int totalSent = 0;
 
-        public LoggerQueue(string accessToken, string apiUrl)
+        public LoggerQueue(ApiClient apiClient, string buildId, string jobName)
         {
-            // The : character delimits username (which should be empty here) and password in basic auth headers
-            _client.DefaultRequestHeaders.Authorization
-                = new AuthenticationHeaderValue("Basic",
-                    Convert.ToBase64String(
-                        ASCIIEncoding.ASCII.GetBytes($":{ accessToken }")));
-            _apiUrl = apiUrl;
-            Console.WriteLine($"API URL: {_apiUrl}");
+            _apiClient = apiClient;
+            _buildId = buildId;
+            _jobName = jobName;
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
 
@@ -86,18 +81,35 @@ namespace PipelinesTestLogger
         private async Task PostResultsAsync(ICollection<string> jsonEntities, CancellationToken cancellationToken)
         {
             string jsonArray = "[" + string.Join(",", jsonEntities) + "]";
-            HttpContent content = new StringContent(jsonArray, Encoding.UTF8, "application/json");
             try
             {
-                Console.WriteLine("POST" + Environment.NewLine + jsonArray);
-                HttpResponseMessage response = await _client.PostAsync(_apiUrl, content, cancellationToken);
-                response.EnsureSuccessStatusCode();
+                // Make sure we have a test run
+                if(_runEndpoint == null)
+                {
+                    int runId = await CreateTestRun(cancellationToken);
+                    _runEndpoint = $"/{runId}/results";
+                }
+
+                // Post the result(s)
+                await _apiClient.PostAsync(jsonArray, cancellationToken, _runEndpoint);
                 totalSent += jsonEntities.Count;
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
             }
+        }
+
+        private async Task<int> CreateTestRun(CancellationToken cancellationToken)
+        {
+            Dictionary<string, object> request = new Dictionary<string, object>
+            {
+                { "name", $"{_jobName} at {DateTime.UtcNow.ToString("o")}"},
+                { "build", new Dictionary<string, object> { { "id", _buildId } } },
+                { "isAutomated", true }
+            };
+            JsonObject result = await _apiClient.PostAsync(request.ToJson(), cancellationToken);
+            return result.ValueAsInt("id");
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using PipelinesTestLogger.Json;
 
 namespace PipelinesTestLogger
 {
@@ -30,13 +31,14 @@ namespace PipelinesTestLogger
             if(!GetRequiredVariable("SYSTEM_ACCESSTOKEN", out string accessToken)
                 || !GetRequiredVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI", out string collectionUri)
                 || !GetRequiredVariable("SYSTEM_TEAMPROJECT", out string teamProject)
-                || !GetRequiredVariable("BUILD_BUILDID", out string buildId))
+                || !GetRequiredVariable("BUILD_BUILDID", out string buildId)
+                || !GetRequiredVariable("AGENT_JOBNAME", out string jobName))
             {
                 return;
             }
 
-            string apiUrl = $"{collectionUri}{teamProject}/_apis/test/runs/{buildId}/results?api-version=5.0-preview.5";
-            _queue = new LoggerQueue(accessToken, apiUrl);
+            ApiClient apiClient = new ApiClient(accessToken, collectionUri, teamProject);
+            _queue = new LoggerQueue(apiClient, buildId, jobName);
 
             // Register for the events.
             events.TestRunMessage += TestMessageHandler;
@@ -64,7 +66,7 @@ namespace PipelinesTestLogger
         {
             string filename = string.IsNullOrEmpty(e.Result.TestCase.Source) ? string.Empty : Path.GetFileName(e.Result.TestCase.Source);
 
-            Dictionary<string, string> testResult = new Dictionary<string, string>()
+            Dictionary<string, object> testResult = new Dictionary<string, object>()
             {
                 { "testCaseTitle", e.Result.TestCase.DisplayName },
                 { "automatedTestName", e.Result.TestCase.FullyQualifiedName },
@@ -115,34 +117,12 @@ namespace PipelinesTestLogger
                 // Handle output type skip, NotFound and None
             }
 
-            PublishTestResult(testResult);
+            _queue.Enqueue(testResult.ToJson());
         }
 
         private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e)
         {
             _queue.Flush();
-        }
-
-        private void PublishTestResult(Dictionary<string, string> testResult)
-        {
-            StringBuilder jsonSb = new StringBuilder();
-            jsonSb.Append("{");
-
-            bool firstItem = true;
-            foreach (KeyValuePair<string, string> field in testResult)
-            {
-                if (!firstItem)
-                {
-                    jsonSb.Append(",");
-                }
-                firstItem = false;
-                jsonSb.Append("\"" + field.Key + "\": ");
-                JsonEscape.SerializeString(field.Value, jsonSb);
-            }
-
-            jsonSb.Append("}");
-
-            _queue.Enqueue(jsonSb.ToString());
         }
     }
 }
