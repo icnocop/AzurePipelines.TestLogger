@@ -1,4 +1,4 @@
-# 0.2.0
+# 0.2.1
 
 - [Fix] Big refactoring to create a new test run before posting results
 

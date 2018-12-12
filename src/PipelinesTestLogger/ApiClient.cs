@@ -29,7 +29,9 @@ namespace PipelinesTestLogger
         public async Task<JsonObject> PostAsync(string json, CancellationToken cancellationToken, string endpoint = null)
         {
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PostAsync($"{ _baseUrl }{ endpoint }?api-version={ ApiVersion }", content, cancellationToken);
+            string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ ApiVersion }";
+            Console.WriteLine("POST" + Environment.NewLine + requestUri + Environment.NewLine + json);
+            HttpResponseMessage response = await _client.PostAsync(requestUri, content, cancellationToken);
             response.EnsureSuccessStatusCode();
             string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             using (StringReader sr = new StringReader(responseString))
