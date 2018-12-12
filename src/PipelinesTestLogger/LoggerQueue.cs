@@ -29,6 +29,7 @@ namespace PipelinesTestLogger
                     Convert.ToBase64String(
                         ASCIIEncoding.ASCII.GetBytes($":{ accessToken }")));
             _apiUrl = apiUrl;
+            Console.WriteLine($"API URL: {_apiUrl}");
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
 
