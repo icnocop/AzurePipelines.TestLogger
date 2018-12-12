@@ -32,13 +32,14 @@ namespace PipelinesTestLogger
                 || !GetRequiredVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI", out string collectionUri)
                 || !GetRequiredVariable("SYSTEM_TEAMPROJECT", out string teamProject)
                 || !GetRequiredVariable("BUILD_BUILDID", out string buildId)
+                || !GetRequiredVariable("AGENT_NAME", out string agentName)
                 || !GetRequiredVariable("AGENT_JOBNAME", out string jobName))
             {
                 return;
             }
 
             ApiClient apiClient = new ApiClient(accessToken, collectionUri, teamProject);
-            _queue = new LoggerQueue(apiClient, buildId, jobName);
+            _queue = new LoggerQueue(apiClient, buildId, agentName, jobName);
 
             // Register for the events.
             events.TestRunMessage += TestMessageHandler;

@@ -11,7 +11,7 @@ namespace PipelinesTestLogger
 {
     internal class ApiClient
     {
-        private const string ApiVersion = "5.0-preview.5";
+        private const string ApiVersion = "5.0-preview.2";
 
         private static readonly HttpClient _client = new HttpClient();
 

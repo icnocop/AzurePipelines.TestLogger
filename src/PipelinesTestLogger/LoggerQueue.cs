@@ -9,8 +9,8 @@ namespace PipelinesTestLogger
     internal class LoggerQueue
     {
         private readonly ApiClient _apiClient;
+        private readonly string _runName;
         private readonly string _buildId;
-        private readonly string _jobName;
 
         private readonly AsyncProducerConsumerCollection<string> _queue = new AsyncProducerConsumerCollection<string>();
         private readonly Task _consumeTask;
@@ -20,11 +20,11 @@ namespace PipelinesTestLogger
         private int totalEnqueued = 0;
         private int totalSent = 0;
 
-        public LoggerQueue(ApiClient apiClient, string buildId, string jobName)
+        public LoggerQueue(ApiClient apiClient, string buildId, string agentName, string jobName)
         {
             _apiClient = apiClient;
             _buildId = buildId;
-            _jobName = jobName;
+            _runName = $"{ jobName } on { agentName } at {DateTime.UtcNow.ToString("o")}";
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
 
@@ -104,7 +104,7 @@ namespace PipelinesTestLogger
         {
             Dictionary<string, object> request = new Dictionary<string, object>
             {
-                { "name", $"{_jobName} at {DateTime.UtcNow.ToString("o")}"},
+                { "name", _runName },
                 { "build", new Dictionary<string, object> { { "id", _buildId } } },
                 { "isAutomated", true }
             };
