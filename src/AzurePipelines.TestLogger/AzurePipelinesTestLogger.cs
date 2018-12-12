@@ -41,7 +41,7 @@ namespace AzurePipelines.TestLogger
             ApiClient apiClient = new ApiClient(accessToken, collectionUri, teamProject);
             _queue = new LoggerQueue(apiClient, buildId, agentName, jobName);
 
-            // Register for the events.
+            // Register for the events
             events.TestRunMessage += TestMessageHandler;
             events.TestResult += TestResultHandler;
             events.TestRunComplete += TestRunCompleteHandler;
@@ -65,11 +65,9 @@ namespace AzurePipelines.TestLogger
 
         private void TestResultHandler(object sender, TestResultEventArgs e)
         {
-            string filename = string.IsNullOrEmpty(e.Result.TestCase.Source) ? string.Empty : Path.GetFileName(e.Result.TestCase.Source);
-
             Dictionary<string, object> testResult = new Dictionary<string, object>()
             {
-                { "testCaseTitle", e.Result.TestCase.DisplayName },
+                { "testCaseTitle", e.Result.TestCase.FullyQualifiedName },
                 { "automatedTestName", e.Result.TestCase.FullyQualifiedName },
                 { "outcome", e.Result.Outcome.ToString() },
                 { "state", "Completed" },
@@ -77,9 +75,15 @@ namespace AzurePipelines.TestLogger
                 { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" }, // This is used in the sample response and also appears in web searches
             };
 
+            string filename = string.IsNullOrEmpty(e.Result.TestCase.Source) ? string.Empty : Path.GetFileName(e.Result.TestCase.Source);
             if (!string.IsNullOrEmpty(filename))
             {
                 testResult.Add("automatedTestStorage", filename);
+
+                if(string.IsNullOrEmpty(_queue.Filename))
+                {
+                    _queue.Filename = filename;
+                }
             }
 
             if (e.Result.Outcome == TestOutcome.Passed || e.Result.Outcome == TestOutcome.Failed)
@@ -121,9 +125,6 @@ namespace AzurePipelines.TestLogger
             _queue.Enqueue(testResult.ToJson());
         }
 
-        private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e)
-        {
-            _queue.Flush();
-        }
+        private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e) => _queue.Flush();
     }
 }

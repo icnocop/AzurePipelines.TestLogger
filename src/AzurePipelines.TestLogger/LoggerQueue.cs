@@ -9,8 +9,9 @@ namespace AzurePipelines.TestLogger
     internal class LoggerQueue
     {
         private readonly ApiClient _apiClient;
-        private readonly string _runName;
         private readonly string _buildId;
+        private readonly string _agentName;
+        private readonly string _jobName;
 
         private readonly AsyncProducerConsumerCollection<string> _queue = new AsyncProducerConsumerCollection<string>();
         private readonly Task _consumeTask;
@@ -24,9 +25,14 @@ namespace AzurePipelines.TestLogger
         {
             _apiClient = apiClient;
             _buildId = buildId;
-            _runName = $"{ jobName } on { agentName } at {DateTime.UtcNow.ToString("o")}";
+            _agentName = agentName;
+            _jobName = jobName;
+            
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
+
+        // This gets set once the first test result comes in
+        public string Filename { get; set; }
 
         public void Enqueue(string json)
         {
@@ -102,9 +108,10 @@ namespace AzurePipelines.TestLogger
 
         private async Task<int> CreateTestRun(CancellationToken cancellationToken)
         {
+            string runName = $"{( string.IsNullOrEmpty(Filename) ? "Unknown Test File" : Filename)} (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: { _jobName }, Agent: { _agentName }) at {DateTime.UtcNow.ToString("o")}";
             Dictionary<string, object> request = new Dictionary<string, object>
             {
-                { "name", _runName },
+                { "name", runName },
                 { "build", new Dictionary<string, object> { { "id", _buildId } } },
                 { "isAutomated", true }
             };
