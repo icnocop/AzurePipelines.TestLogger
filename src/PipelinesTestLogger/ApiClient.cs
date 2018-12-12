@@ -30,7 +30,6 @@ namespace PipelinesTestLogger
         {
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ ApiVersion }";
-            Console.WriteLine("POST" + Environment.NewLine + requestUri + Environment.NewLine + json);
             HttpResponseMessage response = await _client.PostAsync(requestUri, content, cancellationToken);
             response.EnsureSuccessStatusCode();
             string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
