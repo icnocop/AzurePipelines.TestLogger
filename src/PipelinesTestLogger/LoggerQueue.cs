@@ -89,6 +89,7 @@ namespace PipelinesTestLogger
             HttpContent content = new StringContent(jsonArray, Encoding.UTF8, "application/json");
             try
             {
+                Console.WriteLine("POST" + Environment.NewLine + jsonArray);
                 HttpResponseMessage response = await _client.PostAsync(_apiUrl, content, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 totalSent += jsonEntities.Count;
