@@ -23,7 +23,11 @@ namespace PipelinesTestLogger
 
         public LoggerQueue(string accessToken, string apiUrl)
         {
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            // The : character delimits username (which should be empty here) and password in basic auth headers
+            _client.DefaultRequestHeaders.Authorization
+                = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(
+                        ASCIIEncoding.ASCII.GetBytes($":{ accessToken }")));
             _apiUrl = apiUrl;
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
