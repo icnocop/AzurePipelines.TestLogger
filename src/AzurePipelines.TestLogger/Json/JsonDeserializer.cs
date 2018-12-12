@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace PipelinesTestLogger.Json
+namespace AzurePipelines.TestLogger.Json
 {
     // From https://github.com/xunit/xunit/blob/master/src/common/Json.cs
     internal static class JsonDeserializer

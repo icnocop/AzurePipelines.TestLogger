@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace PipelinesTestLogger.Json
+namespace AzurePipelines.TestLogger.Json
 {
     internal class JsonNumber : JsonValue
     {

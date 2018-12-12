@@ -1,10 +1,10 @@
-﻿using PipelinesTestLogger.Json;
+﻿using AzurePipelines.TestLogger.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PipelinesTestLogger
+namespace AzurePipelines.TestLogger
 {
     internal class LoggerQueue
     {

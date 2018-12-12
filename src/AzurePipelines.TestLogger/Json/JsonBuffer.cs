@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace PipelinesTestLogger.Json
+namespace AzurePipelines.TestLogger.Json
 {
     internal class JsonBuffer
     {

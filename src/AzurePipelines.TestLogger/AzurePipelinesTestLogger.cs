@@ -6,23 +6,23 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using PipelinesTestLogger.Json;
+using AzurePipelines.TestLogger.Json;
 
-namespace PipelinesTestLogger
+namespace AzurePipelines.TestLogger
 {
-    [FriendlyName(PipelinesTestLogger.FriendlyName)]
-    [ExtensionUri(PipelinesTestLogger.ExtensionUri)]
-    public class PipelinesTestLogger : ITestLogger
+    [FriendlyName(AzurePipelinesTestLogger.FriendlyName)]
+    [ExtensionUri(AzurePipelinesTestLogger.ExtensionUri)]
+    public class AzurePipelinesTestLogger : ITestLogger
     {
         /// <summary>
         /// Uri used to uniquely identify the logger.
         /// </summary>
-        public const string ExtensionUri = "logger://Microsoft/TestPlatform/PiplinesTestLogger/v1";
+        public const string ExtensionUri = "logger://Microsoft/TestPlatform/AzurePiplinesTestLogger/v1";
 
         /// <summary>
         /// Alternate user friendly string to uniquely identify the logger.
         /// </summary>
-        public const string FriendlyName = "PipelinesTestLogger";
+        public const string FriendlyName = "AzurePipelines";
 
         private LoggerQueue _queue;
 
@@ -52,7 +52,7 @@ namespace PipelinesTestLogger
             value = Environment.GetEnvironmentVariable(name);
             if(string.IsNullOrEmpty(value))
             {
-                Console.WriteLine($"PipelinesTestLogger: Not an Azure Pipelines test run, environment variable { name } not set.");
+                Console.WriteLine($"AzurePipelines.TestLogger: Not an Azure Pipelines test run, environment variable { name } not set.");
                 return false;
             }
             return true;

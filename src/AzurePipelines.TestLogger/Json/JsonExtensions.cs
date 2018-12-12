@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace PipelinesTestLogger.Json
+namespace AzurePipelines.TestLogger.Json
 {
     // From https://github.com/xunit/xunit/blob/master/src/xunit.runner.reporters/JsonExtentions.cs
     public static class JsonExtentions

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PipelinesTestLogger.Json
+namespace AzurePipelines.TestLogger.Json
 {
     internal class JsonObject : JsonValue
     {

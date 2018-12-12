@@ -4,7 +4,7 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C95ECC05-F3E8-49F4-B7C5-A29CD7EACFC1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PipelinesTestLogger", "src\PipelinesTestLogger\PipelinesTestLogger.csproj", "{77CA5040-B4A0-4D0B-ADDD-09853A385007}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePipelines.TestLogger", "src\AzurePipelines.TestLogger\AzurePipelines.TestLogger.csproj", "{77CA5040-B4A0-4D0B-ADDD-09853A385007}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

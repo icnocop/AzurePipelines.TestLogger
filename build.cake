@@ -10,8 +10,8 @@ using Octokit;
 // CONST
 //////////////////////////////////////////////////////////////////////
 
-var projectName = "PipelinesTestLogger";
-var repositoryName = "PipelinesTestLogger";
+var projectName = "AzurePipelines.TestLogger";
+var repositoryName = "AzurePipelines.TestLogger";
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -42,7 +42,7 @@ var msBuildSettings = new DotNetCoreMSBuildSettings()
     .WithProperty("FileVersion", version);
 
 var buildDir = Directory("./build");
-var contentFilesDir = Directory("./src/PipelinesTestLogger/contentFiles/any/any");
+var contentFilesDir = Directory("./src/AzurePipelines.TestLogger/contentFiles/any/any");
 
 ///////////////////////////////////////////////////////////////////////////////
 // SETUP / TEARDOWN
@@ -120,9 +120,9 @@ Task("Pack")
     .Does(() =>
     {
         // Have to copy the build output into contentFiles for NuGet to find it
-        CopyFiles(GetFiles($"./src/PipelinesTestLogger/bin/{ configuration }/**/*.dll"), contentFilesDir);
+        CopyFiles(GetFiles($"./src/AzurePipelines.TestLogger/bin/{ configuration }/**/*.dll"), contentFilesDir);
 
-        var nuspec = MakeAbsolute(File("./src/PipelinesTestLogger/PipelinesTestLogger.nuspec"));        
+        var nuspec = MakeAbsolute(File("./src/AzurePipelines.TestLogger/AzurePipelines.TestLogger.nuspec"));        
         NuGetPack(nuspec, new NuGetPackSettings
         {
             Version = semVersion,

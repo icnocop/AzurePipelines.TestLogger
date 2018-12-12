@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>PipelinesTestLogger</id>
+    <id>AzurePipelines.TestLogger</id>
     <version>$version$</version>
-    <title>PipelinesTestLogger</title>
+    <title>AzurePipelines.TestLogger</title>
     <authors>Dave Glick</authors>
     <owners>Dave Glick</owners>
-    <projectUrl>https://github.com/daveaglick/PipelinesTestLogger</projectUrl>
+    <projectUrl>https://github.com/daveaglick/AzurePipelines.TestLogger</projectUrl>
     <description>Azure Pipelines logger extension for the Visual Studio Test Platform.</description>
-    <licenseUrl>https://github.com/daveaglick/PipelinesTestLogger/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/daveaglick/AzurePipelines.TestLogger/blob/master/LICENSE</licenseUrl>
     <contentFiles>
       <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
     </contentFiles>

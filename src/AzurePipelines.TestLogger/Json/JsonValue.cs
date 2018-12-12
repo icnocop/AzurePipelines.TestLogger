@@ -1,4 +1,4 @@
-﻿namespace PipelinesTestLogger.Json
+﻿namespace AzurePipelines.TestLogger.Json
 {
     internal class JsonValue
     {

@@ -1,4 +1,4 @@
-﻿using PipelinesTestLogger.Json;
+﻿using AzurePipelines.TestLogger.Json;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PipelinesTestLogger
+namespace AzurePipelines.TestLogger
 {
     internal class ApiClient
     {
@@ -31,7 +31,15 @@ namespace PipelinesTestLogger
             HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
             string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ ApiVersion }";
             HttpResponseMessage response = await _client.PostAsync(requestUri, content, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch(Exception)
+            {
+                Console.WriteLine("POST" + Environment.NewLine + requestUri + Environment.NewLine + json);
+                throw;
+            }
             string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             using (StringReader sr = new StringReader(responseString))
             {

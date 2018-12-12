@@ -1,13 +1,13 @@
-# PipelinesTestLogger
+# AzurePipelines.TestLogger
 Azure Pipelines logger extension for the [Visual Studio Test Platform](https://gtihub.com/microsoft/vstest).
 
 ## Usage
-PipelinesTestLogger can report test results automatically to the CI build.
+AzurePipelines.TestLogger can report test results automatically to the CI build.
 
-1. Add a reference to the [PipelinesTestLogger NuGet package](https://www.nuget.org/packages/PipelinesTestLogger) in your test project
+1. Add a reference to the [AzurePipelines.TestLogger NuGet package](https://www.nuget.org/packages/AzurePipelines.TestLogger) in your test project
 2. Use the following command when running tests
 ```
-> dotnet test --test-adapter-path:. --logger:PipelinesTestLogger
+> dotnet test --test-adapter-path:. --logger:AzurePipelines
 ```
 3. Test results are automatically reported to the Azure Pipelines CI results
 

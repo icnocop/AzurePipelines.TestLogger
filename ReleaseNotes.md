@@ -1,3 +1,7 @@
+# 0.3.0
+
+- [Refactoring] Renamed to AzurePipelines.TestLogger
+
 # 0.2.2
 
 - [Feature] Better test run names
