@@ -11,8 +11,6 @@ namespace AzurePipelines.TestLogger
 {
     internal class ApiClient
     {
-        private const string ApiVersion = "5.0-preview.2";
-
         private static readonly HttpClient _client = new HttpClient();
 
         private readonly string _baseUrl;
@@ -26,25 +24,22 @@ namespace AzurePipelines.TestLogger
                  = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($":{ accessToken }")));
         }
 
-        public async Task<JsonObject> PostAsync(string json, CancellationToken cancellationToken, string endpoint = null)
+        public async Task<string> SendAsync(HttpMethod method, string endpoint, string apiVersion, string body, CancellationToken cancellationToken)
         {
-            HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
-            string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ ApiVersion }";
-            HttpResponseMessage response = await _client.PostAsync(requestUri, content, cancellationToken);
+            string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ apiVersion }";
+            HttpRequestMessage request = new HttpRequestMessage(method, requestUri);
+            request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
             try
             {
                 response.EnsureSuccessStatusCode();
             }
-            catch(Exception)
+            catch(Exception ex)
             {
-                Console.WriteLine("POST" + Environment.NewLine + requestUri + Environment.NewLine + json);
+                Console.WriteLine($"Error from AzurePipelines logger while sending { method } to { requestUri }\nBody:\n{ body }\nException:\n{ ex }");
                 throw;
             }
-            string responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            using (StringReader sr = new StringReader(responseString))
-            {
-                return JsonDeserializer.Deserialize(sr) as JsonObject;
-            }
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
     }
 }
