@@ -187,6 +187,7 @@ namespace AzurePipelines.TestLogger
                     {
                         { "testCaseTitle", x },
                         { "automatedTestName", x },
+                        { "resultGroupType", "generic" },
                         { "outcome", "Passed" },  // Start with a passed outcome initially
                         { "state", "InProgress" },
                         { "automatedTestType", "UnitTest" },

@@ -209,6 +209,7 @@ namespace AzurePipelines.TestLogger.Tests
                         {
                             ""testCaseTitle"": ""FooFixture"",
                             ""automatedTestName"": ""FooFixture"",
+                            ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
                             ""automatedTestType"": ""UnitTest"",
@@ -218,6 +219,7 @@ namespace AzurePipelines.TestLogger.Tests
                         {
                             ""testCaseTitle"": ""FutzFixture.NestedFixture"",
                             ""automatedTestName"": ""FutzFixture.NestedFixture"",
+                            ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
                             ""automatedTestType"": ""UnitTest"",

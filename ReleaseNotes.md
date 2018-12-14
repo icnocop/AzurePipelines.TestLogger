@@ -1,3 +1,7 @@
+# 0.4.3
+
+- [Fix] Fixes result grouping for heirarchy display in Pipelines UI
+
 # 0.4.2
 
 - [Feature] Sets test states and outcomes
