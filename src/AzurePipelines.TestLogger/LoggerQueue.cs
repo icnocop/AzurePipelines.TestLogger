@@ -296,7 +296,7 @@ namespace AzurePipelines.TestLogger
             string testRunRequest = $@"{{
                     ""state"": ""Completed""
                 }}";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.5", testRunRequest, cancellationToken);
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken);
         }
     }
 }

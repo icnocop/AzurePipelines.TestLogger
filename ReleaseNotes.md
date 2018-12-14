@@ -1,3 +1,7 @@
+# 0.4.5
+
+- [Fix] Fix for API version when patching a test run as completed
+
 # 0.4.4
 
 - [Fix] Fix for patching aggregate failure outcome
