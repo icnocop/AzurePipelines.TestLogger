@@ -227,7 +227,8 @@ namespace AzurePipelines.TestLogger
                 parent.Duration += Convert.ToInt64(x.Sum(t => t.Duration.TotalMilliseconds));
                 return $@"{{
                     ""id"": { parent.Id },
-                    ""durationInMs"": { parent.Duration },
+                    ""durationInMs"": { parent.Duration.ToString(CultureInfo.InvariantCulture) },
+                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                     { failedOutcome }
                     ""subResults"": { subResults }
                 }}";
@@ -288,13 +289,15 @@ namespace AzurePipelines.TestLogger
             string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
                 $@"{{
                     ""id"": { x.Id },
-                    ""state"": ""Completed""
+                    ""state"": ""Completed"",
+                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }""
                 }}")) + " ]";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken);
 
             // Mark the overall test run as completed
             string testRunRequest = $@"{{
-                    ""state"": ""Completed""
+                    ""state"": ""Completed"",
+                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }""
                 }}";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken);
         }

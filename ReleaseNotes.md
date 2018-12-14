@@ -1,6 +1,7 @@
 # 0.4.5
 
 - [Fix] Fix for API version when patching a test run as completed
+- [Feature] Sets completion dates
 
 # 0.4.4
 
