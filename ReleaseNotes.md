@@ -1,3 +1,7 @@
+# 0.4.4
+
+- [Fix] Fix for patching aggregate failure outcome
+
 # 0.4.3
 
 - [Fix] Fixes result grouping for heirarchy display in Pipelines UI

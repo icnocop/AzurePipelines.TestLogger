@@ -228,7 +228,7 @@ namespace AzurePipelines.TestLogger
                 return $@"{{
                     ""id"": { parent.Id },
                     ""durationInMs"": { parent.Duration },
-                    { failedOutcome },
+                    { failedOutcome }
                     ""subResults"": { subResults }
                 }}";
             })) + " ]";
