@@ -34,6 +34,7 @@ namespace AzurePipelines.TestLogger.Tests
                     $@"{{
                         ""name"": ""Unknown Test Source (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
+                        ""startedDate"": ""{ loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                         ""isAutomated"": true
                     }}")
             });
@@ -63,6 +64,7 @@ namespace AzurePipelines.TestLogger.Tests
                     $@"{{
                         ""name"": ""Fizz.Buzz (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
+                        ""startedDate"": ""{ loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                         ""isAutomated"": true
                     }}")
             });
@@ -205,27 +207,29 @@ namespace AzurePipelines.TestLogger.Tests
                     HttpMethod.Post,
                     "/ep",
                     "5.0-preview.5",
-                    @"[
-                        {
+                    $@"[
+                        {{
                             ""testCaseTitle"": ""FooFixture"",
                             ""automatedTestName"": ""FooFixture"",
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
+                            ""startedDate"": ""{ loggerQueue.Parents["FooFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
-                        },
-                        {
+                        }},
+                        {{
                             ""testCaseTitle"": ""FutzFixture.NestedFixture"",
                             ""automatedTestName"": ""FutzFixture.NestedFixture"",
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
+                            ""startedDate"": ""{ loggerQueue.Parents["FutzFixture.NestedFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
-                        }
+                        }}
                     ]")
             });
             loggerQueue.Parents.Keys.ShouldBe(new[] { "FitzFixture", "FooFixture", "FutzFixture.NestedFixture" }, true);

@@ -18,7 +18,6 @@ namespace AzurePipelines.TestLogger
         private readonly Task _consumeTask;
         private readonly CancellationTokenSource _consumeTaskCancellationSource = new CancellationTokenSource();
 
-
         private readonly IApiClient _apiClient;
         private readonly string _buildId;
         private readonly string _agentName;
@@ -26,6 +25,7 @@ namespace AzurePipelines.TestLogger
 
         // Internal for testing
         internal Dictionary<string, TestResultParent> Parents { get; } = new Dictionary<string, TestResultParent>();
+        internal DateTime StartedDate { get; } = DateTime.UtcNow;
         internal int RunId { get; set; }
         internal string Source { get; set; }
         internal string TestRunEndpoint { get; set; }
@@ -139,6 +139,7 @@ namespace AzurePipelines.TestLogger
             {
                 { "name", runName },
                 { "build", new Dictionary<string, object> { { "id", _buildId } } },
+                { "startedDate", StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") },
                 { "isAutomated", true }
             };
             string responseString = await _apiClient.SendAsync(HttpMethod.Post, null, "5.0-preview.2", request.ToJson(), cancellationToken);
@@ -179,6 +180,7 @@ namespace AzurePipelines.TestLogger
                 .ToArray();
 
             // Batch an add operation and record the new parent IDs
+            DateTime startedDate = DateTime.UtcNow;
             if (parentsToAdd.Length > 0)
             {
                 string request = "[ " + string.Join(", ", parentsToAdd.Select(x =>
@@ -190,6 +192,7 @@ namespace AzurePipelines.TestLogger
                         { "resultGroupType", "generic" },
                         { "outcome", "Passed" },  // Start with a passed outcome initially
                         { "state", "InProgress" },
+                        { "startedDate", startedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") },
                         { "automatedTestType", "UnitTest" },
                         { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" }  // This is used in the sample response and also appears in web searches
                     };
@@ -211,7 +214,7 @@ namespace AzurePipelines.TestLogger
                     for (int c = 0; c < parents.Length; c++)
                     {
                         int id = ((JsonObject)parents[c]).ValueAsInt("id");
-                        Parents.Add(parentsToAdd[c], new TestResultParent(id));
+                        Parents.Add(parentsToAdd[c], new TestResultParent(id, startedDate));
                     }
                 }
             }
@@ -285,19 +288,20 @@ namespace AzurePipelines.TestLogger
 
         private async Task SendTestsCompleted(CancellationToken cancellationToken)
         {
+            string completedDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ");
             // Mark all parents as completed
             string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
                 $@"{{
                     ""id"": { x.Id },
                     ""state"": ""Completed"",
-                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }""
+                    ""completedDate"": ""{ completedDate }""
                 }}")) + " ]";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken);
 
             // Mark the overall test run as completed
             string testRunRequest = $@"{{
                     ""state"": ""Completed"",
-                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }""
+                    ""completedDate"": ""{ completedDate }""
                 }}";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken);
         }
