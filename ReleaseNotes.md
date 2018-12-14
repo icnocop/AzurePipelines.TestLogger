@@ -1,6 +1,7 @@
 # 0.4.1
 
 - [Fix] Fixed a bug with source parsing and file paths
+- [Fix] Fixed a bug with method arguments in test names
 
 # 0.4.0
 

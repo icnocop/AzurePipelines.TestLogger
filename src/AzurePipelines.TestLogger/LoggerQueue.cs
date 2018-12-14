@@ -156,7 +156,13 @@ namespace AzurePipelines.TestLogger
                 }
 
                 // At this point, name should always have at least one '.' to represent the Class.Method
-                return name.Substring(0, name.LastIndexOfAny(new[] { '.' }));
+                // We need to start at the opening method paren if there is one
+                int startIndex = name.IndexOf('(');
+                if(startIndex < 0)
+                {
+                    startIndex = name.Length - 1;
+                }
+                return name.Substring(0, name.LastIndexOfAny(new[] { '.' }, startIndex));
             });
 
         // Internal for testing

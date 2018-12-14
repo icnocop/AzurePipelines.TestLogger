@@ -136,7 +136,7 @@ namespace AzurePipelines.TestLogger.Tests
                 },
                 new TestTestResult
                 {
-                    FullyQualifiedName = "Fizz.Buzz.FutzFixture.BooMethod(\"x\")"
+                    FullyQualifiedName = "Fizz.Buzz.FutzFixture.BooMethod(\"x.y\")"
                 },
                 new TestTestResult
                 {
@@ -190,7 +190,7 @@ namespace AzurePipelines.TestLogger.Tests
                 },
                 new TestTestResult
                 {
-                    FullyQualifiedName = "Fizz.Buzz.FutzFixture.NestedFixture.BooMethod(\"x\")"
+                    FullyQualifiedName = "Fizz.Buzz.FutzFixture.NestedFixture.BooMethod(\"x.y\")"
                 }
             };
             IEnumerable<IGrouping<string, ITestResult>> testResultsByParent = loggerQueue.GroupTestResultsByParent(testResults);
