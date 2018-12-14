@@ -177,7 +177,7 @@ namespace AzurePipelines.TestLogger.Tests
                 Source = "Fizz.Buzz",
                 TestRunEndpoint = "/ep"
             };
-            loggerQueue.ParentIds.Add("FitzFixture", 123);
+            loggerQueue.Parents.Add("FitzFixture", new TestResultParent(123));
             ITestResult[] testResults = new[]
             {
                 new TestTestResult
@@ -209,6 +209,8 @@ namespace AzurePipelines.TestLogger.Tests
                         {
                             ""testCaseTitle"": ""FooFixture"",
                             ""automatedTestName"": ""FooFixture"",
+                            ""outcome"": ""Passed"",
+                            ""state"": ""InProgress"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
@@ -216,18 +218,16 @@ namespace AzurePipelines.TestLogger.Tests
                         {
                             ""testCaseTitle"": ""FutzFixture.NestedFixture"",
                             ""automatedTestName"": ""FutzFixture.NestedFixture"",
+                            ""outcome"": ""Passed"",
+                            ""state"": ""InProgress"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
                         }
                     ]")
             });
-            loggerQueue.ParentIds.ShouldBe(new[]
-            {
-                KeyValuePair.Create("FitzFixture", 123),
-                KeyValuePair.Create("FooFixture", 100),
-                KeyValuePair.Create("FutzFixture.NestedFixture", 101)
-            }, true);
+            loggerQueue.Parents.Keys.ShouldBe(new[] { "FitzFixture", "FooFixture", "FutzFixture.NestedFixture" }, true);
+            loggerQueue.Parents.Values.Select(x => x.Id).ShouldBe(new[] { 123, 100, 101 }, true);
         }
     }
 }

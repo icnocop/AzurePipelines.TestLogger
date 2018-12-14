@@ -1,3 +1,7 @@
+# 0.4.2
+
+- [Feature] Sets test states and outcomes
+
 # 0.4.1
 
 - [Fix] Fixed a bug with source parsing and file paths

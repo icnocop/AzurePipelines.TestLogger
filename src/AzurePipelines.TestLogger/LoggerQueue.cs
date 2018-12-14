@@ -25,7 +25,8 @@ namespace AzurePipelines.TestLogger
         private readonly string _jobName;
 
         // Internal for testing
-        internal Dictionary<string, int> ParentIds { get; } = new Dictionary<string, int>();
+        internal Dictionary<string, TestResultParent> Parents { get; } = new Dictionary<string, TestResultParent>();
+        internal int RunId { get; set; }
         internal string Source { get; set; }
         internal string TestRunEndpoint { get; set; }
 
@@ -51,11 +52,14 @@ namespace AzurePipelines.TestLogger
                 // Any active consumer will circle back around and batch post the remaining queue
                 _consumeTask.Wait(TimeSpan.FromSeconds(60));
 
+                // Update the run and parents to a completed state
+                SendTestsCompleted(_consumeTaskCancellationSource.Token).Wait(TimeSpan.FromSeconds(60));
+
                 // Cancel any active HTTP requests if still hasn't finished flushing
                 _consumeTaskCancellationSource.Cancel();
                 if (!_consumeTask.Wait(TimeSpan.FromSeconds(10)))
                 {
-                    throw new TimeoutException("cancellation didn't happen quickly");
+                    throw new TimeoutException("Cancellation didn't happen quickly");
                 }
             }
             catch (Exception ex)
@@ -93,8 +97,8 @@ namespace AzurePipelines.TestLogger
                 if (TestRunEndpoint == null)
                 {
                     Source = GetSource(testResults);
-                    int runId = await CreateTestRun(cancellationToken);
-                    TestRunEndpoint = $"/{runId}/results";
+                    RunId = await CreateTestRun(cancellationToken);
+                    TestRunEndpoint = $"/{RunId}/results";
                 }
 
                 // Group results by their parent
@@ -156,7 +160,7 @@ namespace AzurePipelines.TestLogger
                 }
 
                 // At this point, name should always have at least one '.' to represent the Class.Method
-                // We need to start at the opening method paren if there is one
+                // We need to start at the opening method if there is one
                 int startIndex = name.IndexOf('(');
                 if(startIndex < 0)
                 {
@@ -171,7 +175,7 @@ namespace AzurePipelines.TestLogger
             // Find the parents that don't exist
             string[] parentsToAdd = testResultsByParent
                 .Select(x => x.Key)
-                .Where(x => !ParentIds.ContainsKey(x))
+                .Where(x => !Parents.ContainsKey(x))
                 .ToArray();
 
             // Batch an add operation and record the new parent IDs
@@ -183,8 +187,10 @@ namespace AzurePipelines.TestLogger
                     {
                         { "testCaseTitle", x },
                         { "automatedTestName", x },
+                        { "outcome", "Passed" },  // Start with a passed outcome initially
+                        { "state", "InProgress" },
                         { "automatedTestType", "UnitTest" },
-                        { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" } // This is used in the sample response and also appears in web searches
+                        { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" }  // This is used in the sample response and also appears in web searches
                     };
                     if (!string.IsNullOrEmpty(Source))
                     {
@@ -203,7 +209,8 @@ namespace AzurePipelines.TestLogger
                     }
                     for (int c = 0; c < parents.Length; c++)
                     {
-                        ParentIds.Add(parentsToAdd[c], ((JsonObject)parents[c]).ValueAsInt("id"));
+                        int id = ((JsonObject)parents[c]).ValueAsInt("id");
+                        Parents.Add(parentsToAdd[c], new TestResultParent(id));
                     }
                 }
             }
@@ -213,13 +220,20 @@ namespace AzurePipelines.TestLogger
         {
             string request = "[ " + string.Join(", ", testResultsByParent.Select(x =>
             {
-                int parentId = ParentIds[x.Key];
+                TestResultParent parent = Parents[x.Key];
                 string subResults = "[ " + string.Join(", ", x.Select(GetTestResultJson)) + " ]";
-                return $"{{ \"id\": { parentId }, \"subResults\": { subResults } }}";
+                string failedOutcome = x.Any(t => t.Outcome == TestOutcome.Failed) ? "\"outcome\": \"Failed\"," : null;
+                parent.Duration += Convert.ToInt64(x.Sum(t => t.Duration.TotalMilliseconds));
+                return $@"{{
+                    ""id"": { parent.Id },
+                    ""durationInMs"": { parent.Duration },
+                    { failedOutcome },
+                    ""subResults"": { subResults }
+                }}";
             })) + " ]";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", request, cancellationToken);
         }
-
+        
         private string GetTestResultJson(ITestResult testResult)
         {
             Dictionary<string, object> properties = new Dictionary<string, object>
@@ -230,7 +244,7 @@ namespace AzurePipelines.TestLogger
 
             if (testResult.Outcome == TestOutcome.Passed || testResult.Outcome == TestOutcome.Failed)
             {
-                int duration = Convert.ToInt32(testResult.Duration.TotalMilliseconds);
+                long duration = Convert.ToInt64(testResult.Duration.TotalMilliseconds);
                 properties.Add("durationInMs", duration.ToString(CultureInfo.InvariantCulture));
 
                 string errorStackTrace = testResult.ErrorStackTrace;
@@ -265,6 +279,23 @@ namespace AzurePipelines.TestLogger
             }
 
             return properties.ToJson();
+        }
+
+        private async Task SendTestsCompleted(CancellationToken cancellationToken)
+        {
+            // Mark all parents as completed
+            string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
+                $@"{{
+                    ""id"": { x.Id },
+                    ""state"": ""Completed""
+                }}")) + " ]";
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken);
+
+            // Mark the overall test run as completed
+            string testRunRequest = $@"{{
+                    ""state"": ""Completed""
+                }}";
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.5", testRunRequest, cancellationToken);
         }
     }
 }
