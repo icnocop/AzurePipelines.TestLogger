@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace AzurePipelines.TestLogger
 {
-    internal class ApiClient
+    internal class ApiClient : IApiClient
     {
         private static readonly HttpClient _client = new HttpClient();
 
@@ -26,9 +26,22 @@ namespace AzurePipelines.TestLogger
 
         public async Task<string> SendAsync(HttpMethod method, string endpoint, string apiVersion, string body, CancellationToken cancellationToken)
         {
+            if (method == null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
+            if (apiVersion == null)
+            {
+                throw new ArgumentNullException(nameof(apiVersion));
+            }
+
             string requestUri = $"{ _baseUrl }{ endpoint }?api-version={ apiVersion }";
             HttpRequestMessage request = new HttpRequestMessage(method, requestUri);
-            request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            if (body != null)
+            {
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+            }
             HttpResponseMessage response = await _client.SendAsync(request, cancellationToken);
             try
             {

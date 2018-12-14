@@ -24,7 +24,18 @@ namespace AzurePipelines.TestLogger
         /// </summary>
         public const string FriendlyName = "AzurePipelines";
 
+        private IApiClient _apiClient;
         private LoggerQueue _queue;
+
+        public AzurePipelinesTestLogger()
+        {
+        }
+
+        // Used for testing
+        internal AzurePipelinesTestLogger(IApiClient apiClient)
+        {
+            _apiClient = apiClient;
+        }
 
         public void Initialize(TestLoggerEvents events, string testRunDirectory)
         {
@@ -38,8 +49,11 @@ namespace AzurePipelines.TestLogger
                 return;
             }
 
-            ApiClient apiClient = new ApiClient(accessToken, collectionUri, teamProject);
-            _queue = new LoggerQueue(apiClient, buildId, agentName, jobName);
+            if (_apiClient == null)
+            {
+                _apiClient = new ApiClient(accessToken, collectionUri, teamProject);
+            }
+            _queue = new LoggerQueue(_apiClient, buildId, agentName, jobName);
 
             // Register for the events
             events.TestRunMessage += TestMessageHandler;
@@ -63,7 +77,8 @@ namespace AzurePipelines.TestLogger
             // Add code to handle message
         }
 
-        private void TestResultHandler(object sender, TestResultEventArgs e) => _queue.Enqueue(e.Result);
+        private void TestResultHandler(object sender, TestResultEventArgs e) =>
+            _queue.Enqueue(new VstpTestResult(e.Result));
 
         private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e) => _queue.Flush();
     }

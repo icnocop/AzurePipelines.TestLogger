@@ -1,3 +1,7 @@
+# 0.4.0
+
+- [Feature] Now groups tests under their fixture
+
 # 0.3.0
 
 - [Refactoring] Renamed to AzurePipelines.TestLogger
