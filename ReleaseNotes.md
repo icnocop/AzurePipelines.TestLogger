@@ -1,3 +1,7 @@
+# 0.4.1
+
+- [Fix] Fixed a bug with source parsing and file paths
+
 # 0.4.0
 
 - [Feature] Now groups tests under their fixture

@@ -116,9 +116,13 @@ namespace AzurePipelines.TestLogger
         internal static string GetSource(ITestResult[] testResults)
         {
             string source = Array.Find(testResults, x => !string.IsNullOrEmpty(x.Source))?.Source;
-            if(source != null && source.EndsWith(".dll"))
+            if (source != null)
             {
-                return source.Substring(0, source.Length - 4);
+                source = Path.GetFileName(source);
+                if (source.EndsWith(".dll"))
+                {
+                    return source.Substring(0, source.Length - 4);
+                }
             }
             return source;
         }

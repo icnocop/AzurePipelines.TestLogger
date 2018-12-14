@@ -74,7 +74,7 @@ namespace AzurePipelines.TestLogger.Tests
             // Given
             TestTestResult testResult = new TestTestResult
             {
-                Source = "Foo.Bar"
+                Source = "/a/b/Foo.Bar"
             };
 
             // When
@@ -90,7 +90,7 @@ namespace AzurePipelines.TestLogger.Tests
             // Given
             TestTestResult testResult = new TestTestResult
             {
-                Source = "Foo.Bar.dll"
+                Source = "/a/b/Foo.Bar.dll"
             };
 
             // When
