@@ -289,11 +289,13 @@ namespace AzurePipelines.TestLogger
         private async Task SendTestsCompleted(CancellationToken cancellationToken)
         {
             string completedDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ");
+
             // Mark all parents as completed
             string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
                 $@"{{
                     ""id"": { x.Id },
                     ""state"": ""Completed"",
+                    ""startedDate"": ""{ x.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                     ""completedDate"": ""{ completedDate }""
                 }}")) + " ]";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken);
@@ -301,6 +303,7 @@ namespace AzurePipelines.TestLogger
             // Mark the overall test run as completed
             string testRunRequest = $@"{{
                     ""state"": ""Completed"",
+                    ""startedDate"": ""{ StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
                     ""completedDate"": ""{ completedDate }""
                 }}";
             await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken);

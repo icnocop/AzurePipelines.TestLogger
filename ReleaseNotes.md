@@ -1,3 +1,7 @@
+# 0.4.7
+
+- [Fix] Sends start dates when marking as completed so they don't get reset
+
 # 0.4.6
 
 - [Feature] Sets start dates
