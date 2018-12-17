@@ -59,6 +59,12 @@ Task("Test")
     .DeferOnError();
 ```
 
+## Limitations
+
+Note that right now, the Azure Pipelines test summary will only show statistics for top-level tests. That's not ideal for a logger that nests results like this one, but the clarity of grouping tests under their fixture is more valuable than listing a correct total in the test summary in my opinion. Thankfully the pass/fail will still "bubble up" so even though the summary may show fewer tests than actually exist, it'll still correctly indicate if any tests are failing (which would then require a drill-down to figure out which ones are failing).
+
+[There's an open feature suggestion here for showing all nested tests in the summary](https://developercommunity.visualstudio.com/content/idea/409015/show-all-tests-in-the-hierarchy-in-test-summary.html).
+
 ## Credit
 
 This project is based on [appveyor.testlogger](https://github.com/spekt/appveyor.testlogger) and [xunit](https://github.com/xunit/xunit/blob/master/src/xunit.runner.reporters/VstsReporter.cs).
