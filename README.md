@@ -1,8 +1,20 @@
-# AzurePipelines.TestLogger
-
 Azure Pipelines logger extension for the [Visual Studio Test Platform](https://gtihub.com/microsoft/vstest).
 
-## Why Do I Need This?
+**NuGet**
+* [AzurePipelines.TestLogger](https://www.nuget.org/packages/AzurePipelines.TestLogger)
+
+**GitHub**
+* [AzurePipelines.TestLogger](https://github.com/daveaglick/AzurePipelines.TestLogger)
+
+**Donations**
+
+If you found this library useful, consider kicking me a few bucks. I promise to use it on something totally frivolous and unrelated.
+
+<a href="https://www.buymeacoffee.com/daveaglick"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
+---
+
+## What Is It?
 
 This logger extensions allows you to send test results from a `dotnet test` session directly to Azure Pipelines in real-time as the tests are executed. It also talks directly to the Azure DevOps REST API and as a result can better represent your tests using Azure Pipelines conventions over other post-processing methods such as logging to a TRX file and processing with the `PublishTestResults` Azure Pipelines task.
 
