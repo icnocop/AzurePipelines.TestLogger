@@ -1,6 +1,4 @@
-﻿using AzurePipelines.TestLogger.Json;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -9,6 +7,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AzurePipelines.TestLogger.Json;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace AzurePipelines.TestLogger
 {
@@ -36,7 +36,7 @@ namespace AzurePipelines.TestLogger
             _buildId = buildId;
             _agentName = agentName;
             _jobName = jobName;
-            
+
             _consumeTask = ConsumeItemsAsync(_consumeTaskCancellationSource.Token);
         }
 
@@ -72,15 +72,15 @@ namespace AzurePipelines.TestLogger
         {
             while (true)
             {
-                ITestResult[] nextItems = await _queue.TakeAsync();
+                ITestResult[] nextItems = await _queue.TakeAsync().ConfigureAwait(false);
 
                 if (nextItems == null || nextItems.Length == 0)
                 {
                     // Queue is canceling and is empty
-                    return;      
+                    return;
                 }
 
-                await SendResultsAsync(nextItems, cancellationToken);
+                await SendResultsAsync(nextItems, cancellationToken).ConfigureAwait(false);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -97,7 +97,7 @@ namespace AzurePipelines.TestLogger
                 if (TestRunEndpoint == null)
                 {
                     Source = GetSource(testResults);
-                    RunId = await CreateTestRun(cancellationToken);
+                    RunId = await CreateTestRun(cancellationToken).ConfigureAwait(false);
                     TestRunEndpoint = $"/{RunId}/results";
                 }
 
@@ -105,10 +105,10 @@ namespace AzurePipelines.TestLogger
                 IEnumerable<IGrouping<string, ITestResult>> testResultsByParent = GroupTestResultsByParent(testResults);
 
                 // Create any required parent nodes
-                await CreateParents(testResultsByParent, cancellationToken);
+                await CreateParents(testResultsByParent, cancellationToken).ConfigureAwait(false);
 
                 // Update parents with the test results
-                await SendTestResults(testResultsByParent, cancellationToken);
+                await SendTestResults(testResultsByParent, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -134,7 +134,7 @@ namespace AzurePipelines.TestLogger
         // Internal for testing
         internal async Task<int> CreateTestRun(CancellationToken cancellationToken)
         {
-            string runName = $"{( string.IsNullOrEmpty(Source) ? "Unknown Test Source" : Source)} (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: { _jobName }, Agent: { _agentName })";
+            string runName = $"{(string.IsNullOrEmpty(Source) ? "Unknown Test Source" : Source)} (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: {_jobName}, Agent: {_agentName})";
             Dictionary<string, object> request = new Dictionary<string, object>
             {
                 { "name", runName },
@@ -142,7 +142,7 @@ namespace AzurePipelines.TestLogger
                 { "startedDate", StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") },
                 { "isAutomated", true }
             };
-            string responseString = await _apiClient.SendAsync(HttpMethod.Post, null, "5.0-preview.2", request.ToJson(), cancellationToken);
+            string responseString = await _apiClient.SendAsync(HttpMethod.Post, null, "5.0-preview.2", request.ToJson(), cancellationToken).ConfigureAwait(false);
             using (StringReader reader = new StringReader(responseString))
             {
                 JsonObject response = JsonDeserializer.Deserialize(reader) as JsonObject;
@@ -163,7 +163,7 @@ namespace AzurePipelines.TestLogger
                 // At this point, name should always have at least one '.' to represent the Class.Method
                 // We need to start at the opening method if there is one
                 int startIndex = name.IndexOf('(');
-                if(startIndex < 0)
+                if (startIndex < 0)
                 {
                     startIndex = name.Length - 1;
                 }
@@ -190,11 +190,11 @@ namespace AzurePipelines.TestLogger
                         { "testCaseTitle", x },
                         { "automatedTestName", x },
                         { "resultGroupType", "generic" },
-                        { "outcome", "Passed" },  // Start with a passed outcome initially
+                        { "outcome", "Passed" }, // Start with a passed outcome initially
                         { "state", "InProgress" },
                         { "startedDate", startedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") },
                         { "automatedTestType", "UnitTest" },
-                        { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" }  // This is used in the sample response and also appears in web searches
+                        { "automatedTestTypeId", "13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" } // This is used in the sample response and also appears in web searches
                     };
                     if (!string.IsNullOrEmpty(Source))
                     {
@@ -202,7 +202,7 @@ namespace AzurePipelines.TestLogger
                     }
                     return properties.ToJson();
                 })) + " ]";
-                string responseString = await _apiClient.SendAsync(HttpMethod.Post, TestRunEndpoint, "5.0-preview.5", request, cancellationToken);
+                string responseString = await _apiClient.SendAsync(HttpMethod.Post, TestRunEndpoint, "5.0-preview.5", request, cancellationToken).ConfigureAwait(false);
                 using (StringReader reader = new StringReader(responseString))
                 {
                     JsonObject response = JsonDeserializer.Deserialize(reader) as JsonObject;
@@ -229,16 +229,16 @@ namespace AzurePipelines.TestLogger
                 string failedOutcome = x.Any(t => t.Outcome == TestOutcome.Failed) ? "\"outcome\": \"Failed\"," : null;
                 parent.Duration += Convert.ToInt64(x.Sum(t => t.Duration.TotalMilliseconds));
                 return $@"{{
-                    ""id"": { parent.Id },
-                    ""durationInMs"": { parent.Duration.ToString(CultureInfo.InvariantCulture) },
-                    ""completedDate"": ""{ DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
-                    { failedOutcome }
-                    ""subResults"": { subResults }
+                    ""id"": {parent.Id},
+                    ""durationInMs"": {parent.Duration.ToString(CultureInfo.InvariantCulture)},
+                    ""completedDate"": ""{DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                    {failedOutcome}
+                    ""subResults"": {subResults}
                 }}";
             })) + " ]";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", request, cancellationToken);
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", request, cancellationToken).ConfigureAwait(false);
         }
-        
+
         private string GetTestResultJson(ITestResult testResult)
         {
             Dictionary<string, object> properties = new Dictionary<string, object>
@@ -293,20 +293,20 @@ namespace AzurePipelines.TestLogger
             // Mark all parents as completed
             string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
                 $@"{{
-                    ""id"": { x.Id },
+                    ""id"": {x.Id},
                     ""state"": ""Completed"",
-                    ""startedDate"": ""{ x.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
-                    ""completedDate"": ""{ completedDate }""
+                    ""startedDate"": ""{x.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                    ""completedDate"": ""{completedDate}""
                 }}")) + " ]";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken);
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken).ConfigureAwait(false);
 
             // Mark the overall test run as completed
             string testRunRequest = $@"{{
                     ""state"": ""Completed"",
-                    ""startedDate"": ""{ StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
-                    ""completedDate"": ""{ completedDate }""
+                    ""startedDate"": ""{StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                    ""completedDate"": ""{completedDate}""
                 }}";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken);
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -96,4 +96,3 @@ namespace AzurePipelines.TestLogger.Json
         }
     }
 }
-

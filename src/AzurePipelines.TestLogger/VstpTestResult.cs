@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace AzurePipelines.TestLogger
 {

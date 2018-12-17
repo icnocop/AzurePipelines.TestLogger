@@ -67,8 +67,10 @@ namespace AzurePipelines.TestLogger.Json
                 return new JsonNumber(next);
             }
 
-            throw new JsonDeserializerException(JsonDeserializerResource.Format_InvalidTokenExpectation(
-                next.Value, "'{', '[', true, false, null, JSON string, JSON number, or the end of the file"),
+            throw new JsonDeserializerException(
+                JsonDeserializerResource.Format_InvalidTokenExpectation(
+                    next.Value,
+                    "'{', '[', true, false, null, JSON string, JSON number, or the end of the file"),
                 next);
         }
 
@@ -177,4 +179,3 @@ namespace AzurePipelines.TestLogger.Json
         }
     }
 }
-

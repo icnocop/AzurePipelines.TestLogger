@@ -21,7 +21,7 @@ namespace AzurePipelines.TestLogger.Json
             }
         }
 
-        public bool Value { get; private set; }
+        public bool Value { get; }
 
         public static implicit operator bool(JsonBoolean jsonBoolean)
         {
@@ -29,4 +29,3 @@ namespace AzurePipelines.TestLogger.Json
         }
     }
 }
-

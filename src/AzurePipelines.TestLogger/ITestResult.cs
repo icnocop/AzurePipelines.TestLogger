@@ -1,13 +1,11 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace AzurePipelines.TestLogger
 {
     internal interface ITestResult
-    {        
+    {
         string Source { get; }
         string FullyQualifiedName { get; }
         string DisplayName { get; }

@@ -9,12 +9,7 @@ namespace AzurePipelines.TestLogger.Json
         public JsonArray(JsonValue[] array, int line, int column)
             : base(line, column)
         {
-            if (array == null)
-            {
-                throw new ArgumentNullException(nameof(array));
-            }
-
-            _array = array;
+            _array = array ?? throw new ArgumentNullException(nameof(array));
         }
 
         public int Length
@@ -28,4 +23,3 @@ namespace AzurePipelines.TestLogger.Json
         }
     }
 }
-

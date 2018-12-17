@@ -1,12 +1,7 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
+﻿using System;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using AzurePipelines.TestLogger.Json;
 
 namespace AzurePipelines.TestLogger
 {
@@ -39,7 +34,7 @@ namespace AzurePipelines.TestLogger
 
         public void Initialize(TestLoggerEvents events, string testRunDirectory)
         {
-            if(!GetRequiredVariable("SYSTEM_ACCESSTOKEN", out string accessToken)
+            if (!GetRequiredVariable("SYSTEM_ACCESSTOKEN", out string accessToken)
                 || !GetRequiredVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI", out string collectionUri)
                 || !GetRequiredVariable("SYSTEM_TEAMPROJECT", out string teamProject)
                 || !GetRequiredVariable("BUILD_BUILDID", out string buildId)
@@ -64,9 +59,9 @@ namespace AzurePipelines.TestLogger
         private bool GetRequiredVariable(string name, out string value)
         {
             value = Environment.GetEnvironmentVariable(name);
-            if(string.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value))
             {
-                Console.WriteLine($"AzurePipelines.TestLogger: Not an Azure Pipelines test run, environment variable { name } not set.");
+                Console.WriteLine($"AzurePipelines.TestLogger: Not an Azure Pipelines test run, environment variable {name} not set.");
                 return false;
             }
             return true;

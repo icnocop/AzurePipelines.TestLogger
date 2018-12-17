@@ -1,12 +1,9 @@
-﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using NUnit.Framework;
-using Shouldly;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
+using NUnit.Framework;
+using Shouldly;
 
 namespace AzurePipelines.TestLogger.Tests
 {
@@ -16,8 +13,8 @@ namespace AzurePipelines.TestLogger.Tests
         [Test]
         public void CreateTestRunWithoutFilename()
         {
-            // Given            
-            TestApiClient apiClient = new TestApiClient(x => "{ \"id\": 1234 }");
+            // Given
+            TestApiClient apiClient = new TestApiClient(_ => "{ \"id\": 1234 }");
             LoggerQueue loggerQueue = new LoggerQueue(apiClient, "987", "foo", "bar");
 
             // When
@@ -32,9 +29,9 @@ namespace AzurePipelines.TestLogger.Tests
                     null,
                     "5.0-preview.2",
                     $@"{{
-                        ""name"": ""Unknown Test Source (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: bar, Agent: foo)"",
+                        ""name"": ""Unknown Test Source (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
-                        ""startedDate"": ""{ loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
+                        ""startedDate"": ""{loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                         ""isAutomated"": true
                     }}")
             });
@@ -43,8 +40,8 @@ namespace AzurePipelines.TestLogger.Tests
         [Test]
         public void CreateTestRunWithFilename()
         {
-            // Given            
-            TestApiClient apiClient = new TestApiClient(x => "{ \"id\": 1234 }");
+            // Given
+            TestApiClient apiClient = new TestApiClient(_ => "{ \"id\": 1234 }");
             LoggerQueue loggerQueue = new LoggerQueue(apiClient, "987", "foo", "bar")
             {
                 Source = "Fizz.Buzz"
@@ -62,9 +59,9 @@ namespace AzurePipelines.TestLogger.Tests
                     null,
                     "5.0-preview.2",
                     $@"{{
-                        ""name"": ""Fizz.Buzz (OS: { System.Runtime.InteropServices.RuntimeInformation.OSDescription }, Job: bar, Agent: foo)"",
+                        ""name"": ""Fizz.Buzz (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
-                        ""startedDate"": ""{ loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
+                        ""startedDate"": ""{loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                         ""isAutomated"": true
                     }}")
             });
@@ -106,9 +103,7 @@ namespace AzurePipelines.TestLogger.Tests
         public void GetMissingSource()
         {
             // Given
-            TestTestResult testResult = new TestTestResult
-            {
-            };
+            TestTestResult testResult = new TestTestResult();
 
             // When
             string source = LoggerQueue.GetSource(new[] { testResult });
@@ -120,7 +115,7 @@ namespace AzurePipelines.TestLogger.Tests
         [Test]
         public void GroupTestResults()
         {
-            // Given          
+            // Given
             TestApiClient apiClient = new TestApiClient();
             LoggerQueue loggerQueue = new LoggerQueue(apiClient, "987", "foo", "bar")
             {
@@ -150,19 +145,21 @@ namespace AzurePipelines.TestLogger.Tests
             IEnumerable<IGrouping<string, ITestResult>> testResultsByParent = loggerQueue.GroupTestResultsByParent(testResults);
 
             // Then
-            testResultsByParent.Select(x => x.Key).ShouldBe(new[]
-            {
-                "FooFixture",
-                "FutzFixture",
-                "FutzFixture.NestedFixture"
-            }, true);
+            testResultsByParent.Select(x => x.Key).ShouldBe(
+                new[]
+                {
+                    "FooFixture",
+                    "FutzFixture",
+                    "FutzFixture.NestedFixture"
+                },
+                true);
         }
 
         [Test]
         public void CreateParents()
         {
-            // Given          
-            TestApiClient apiClient = new TestApiClient(x =>
+            // Given
+            TestApiClient apiClient = new TestApiClient(_ =>
                 @"{
                     ""count"": 2,
                     ""value"": [
@@ -214,7 +211,7 @@ namespace AzurePipelines.TestLogger.Tests
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
-                            ""startedDate"": ""{ loggerQueue.Parents["FooFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
+                            ""startedDate"": ""{loggerQueue.Parents["FooFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
@@ -225,7 +222,7 @@ namespace AzurePipelines.TestLogger.Tests
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
-                            ""startedDate"": ""{ loggerQueue.Parents["FutzFixture.NestedFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") }"",
+                            ""startedDate"": ""{loggerQueue.Parents["FutzFixture.NestedFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""

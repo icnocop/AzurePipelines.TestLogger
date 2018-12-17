@@ -1,3 +1,7 @@
+# 1.0.0
+
+- [Refactoring] Code quality improvements
+
 # 0.4.7
 
 - [Fix] Sends start dates when marking as completed so they don't get reset

@@ -10,9 +10,9 @@ namespace AzurePipelines.TestLogger.Json
         public const string ValueNull = "null";
         public const string ValueTrue = "true";
         public const string ValueFalse = "false";
-        private StringBuilder _buffer = new StringBuilder();
-        private StringBuilder _codePointBuffer = new StringBuilder(4);
         private readonly TextReader _reader;
+        private readonly StringBuilder _buffer = new StringBuilder();
+        private readonly StringBuilder _codePointBuffer = new StringBuilder(4);
         private JsonToken _token;
         private int _line;
         private int _column;
@@ -145,10 +145,10 @@ namespace AzurePipelines.TestLogger.Json
             {
                 int next = _reader.Peek();
 
-                if ((next >= '0' && next <= '9') ||
-                    next == '.' ||
-                    next == 'e' ||
-                    next == 'E')
+                if ((next >= '0' && next <= '9')
+                    || next == '.'
+                    || next == 'e'
+                    || next == 'E')
                 {
                     _buffer.Append((char)ReadNextChar());
                 }
@@ -170,7 +170,8 @@ namespace AzurePipelines.TestLogger.Json
                 {
                     throw new JsonDeserializerException(
                         JsonDeserializerResource.Format_UnrecognizedLiteral(literal),
-                        _line, _column);
+                        _line,
+                        _column);
                 }
                 else
                 {
@@ -179,16 +180,17 @@ namespace AzurePipelines.TestLogger.Json
             }
 
             int tail = _reader.Peek();
-            if (tail != '}' &&
-                tail != ']' &&
-                tail != ',' &&
-                tail != '\n' &&
-                tail != -1 &&
-                !IsWhitespace(tail))
+            if (tail != '}'
+                && tail != ']'
+                && tail != ','
+                && tail != '\n'
+                && tail != -1
+                && !IsWhitespace(tail))
             {
                 throw new JsonDeserializerException(
                     JsonDeserializerResource.Format_IllegalTrailingCharacterAfterLiteral(tail, literal),
-                    _line, _column);
+                    _line,
+                    _column);
             }
         }
 
@@ -209,7 +211,8 @@ namespace AzurePipelines.TestLogger.Json
                 {
                     throw new JsonDeserializerException(
                         JsonDeserializerResource.JSON_OpenString,
-                        _line, _column);
+                        _line,
+                        _column);
                 }
                 else if (escaped)
                 {
@@ -316,4 +319,3 @@ namespace AzurePipelines.TestLogger.Json
         }
     }
 }
-

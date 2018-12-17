@@ -2,6 +2,7 @@
 // NUGET_KEY
 // GITHUB_TOKEN
 
+#tool "AzurePipelines.TestLogger&version=1.0.0"
 #addin "Octokit"
             
 using Octokit;
@@ -106,7 +107,8 @@ Task("Test")
         if (isRunningOnBuildServer)
         {
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
-            testSettings.Logger = "trx";
+            testSettings.Logger = "AzurePipelines";
+            testSettings.TestAdapterPath = GetDirectories($"./tools/AzurePipelines.TestLogger.*/contentFiles/any/any").First();
         }
 
         Information($"Running tests in {project}");
@@ -218,6 +220,11 @@ Task("Release")
     .Description("Generates a GitHub release and pushes the NuGet package.")
     .IsDependentOn("GitHub")
     .IsDependentOn("NuGet");
+    
+Task("BuildServer")
+    .Description("Runs a build from the build server and updates build server data.")
+    .IsDependentOn("Test")
+    .WithCriteria(() => isRunningOnBuildServer);
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

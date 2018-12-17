@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace AzurePipelines.TestLogger.Tests

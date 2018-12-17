@@ -5,6 +5,11 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="contentFiles\**" />
+    <EmbeddedResource Remove="contentFiles\**" />
+    <None Remove="contentFiles\**" />
+  </ItemGroup>
     
   <ItemGroup>
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" />

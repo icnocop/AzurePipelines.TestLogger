@@ -6,7 +6,7 @@ using System.Text;
 namespace AzurePipelines.TestLogger.Json
 {
     // From https://github.com/xunit/xunit/blob/master/src/xunit.runner.reporters/JsonExtentions.cs
-    public static class JsonExtentions
+    public static class JsonExtensions
     {
         public static string ToJson(this IDictionary<string, object> data)
         {
@@ -20,7 +20,7 @@ namespace AzurePipelines.TestLogger.Json
             return "{" + sb.ToString() + "}";
         }
 
-        static void AddValue(StringBuilder sb, string name, object value)
+        private static void AddValue(StringBuilder sb, string name, object value)
         {
             if (value == null)
             {
@@ -54,7 +54,7 @@ namespace AzurePipelines.TestLogger.Json
             }
         }
 
-        static string JsonEscape(string value)
+        private static string JsonEscape(string value)
         {
             StringBuilder sb = new StringBuilder();
 

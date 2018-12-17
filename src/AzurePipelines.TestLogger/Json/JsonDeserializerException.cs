@@ -30,4 +30,3 @@ namespace AzurePipelines.TestLogger.Json
         public int Column { get; }
     }
 }
-
