@@ -8,7 +8,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePipelines.TestLogger",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{FA92AD98-1291-4A90-A3AA-ED81A9BBC86E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzurePipelines.TestLogger.Tests", "tests\AzurePipelines.TestLogger.Tests\AzurePipelines.TestLogger.Tests.csproj", "{8C42EBD4-FF36-44B6-A70E-7D83CB0626F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePipelines.TestLogger.Tests", "tests\AzurePipelines.TestLogger.Tests\AzurePipelines.TestLogger.Tests.csproj", "{8C42EBD4-FF36-44B6-A70E-7D83CB0626F8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{B8315F74-E70E-4DFF-BC70-583D1ECD35B7}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		azure-pipelines.yml = azure-pipelines.yml
+		build.cake = build.cake
+		daveaglick.ruleset = daveaglick.ruleset
+		Directory.Build.props = Directory.Build.props
+		LICENSE = LICENSE
+		README.md = README.md
+		ReleaseNotes.md = ReleaseNotes.md
+		stylecop.json = stylecop.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
