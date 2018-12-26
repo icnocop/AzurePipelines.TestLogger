@@ -8,7 +8,7 @@
     <owners>Dave Glick</owners>
     <projectUrl>https://github.com/daveaglick/AzurePipelines.TestLogger</projectUrl>
     <description>Azure Pipelines logger extension for the Visual Studio Test Platform.</description>
-    <licenseUrl>https://github.com/daveaglick/AzurePipelines.TestLogger/blob/master/LICENSE</licenseUrl>
+    <license type="expression">MIT</license>
     <contentFiles>
       <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
     </contentFiles>
