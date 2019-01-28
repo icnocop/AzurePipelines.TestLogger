@@ -3,6 +3,7 @@
 // GITHUB_TOKEN
 
 #tool "AzurePipelines.TestLogger&version=1.0.0"
+#tool "nuget:?package=NuGet.CommandLine&version=4.9.2"
 #addin "Octokit"
             
 using Octokit;
