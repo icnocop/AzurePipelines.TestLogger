@@ -1,3 +1,7 @@
+# 1.0.2
+
+- [Fix] Another fix for test runs without any results
+
 # 1.0.1
 
 - [Fix] Makes sure not to end test runs that didn't send any results

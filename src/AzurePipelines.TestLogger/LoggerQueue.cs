@@ -301,15 +301,15 @@ namespace AzurePipelines.TestLogger
                     ""completedDate"": ""{completedDate}""
                 }}")) + " ]";
                 await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken).ConfigureAwait(false);
-            }
 
-            // Mark the overall test run as completed
-            string testRunRequest = $@"{{
-                    ""state"": ""Completed"",
-                    ""startedDate"": ""{StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
-                    ""completedDate"": ""{completedDate}""
-                }}";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken).ConfigureAwait(false);
+                // Mark the overall test run as completed
+                string testRunRequest = $@"{{
+                        ""state"": ""Completed"",
+                        ""startedDate"": ""{StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                        ""completedDate"": ""{completedDate}""
+                    }}";
+                await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
