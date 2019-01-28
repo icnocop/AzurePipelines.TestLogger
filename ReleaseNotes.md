@@ -1,3 +1,7 @@
+# 1.0.1
+
+- [Fix] Makes sure not to end test runs that didn't send any results
+
 # 1.0.0
 
 - [Refactoring] Code quality improvements

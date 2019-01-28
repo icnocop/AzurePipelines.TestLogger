@@ -290,15 +290,18 @@ namespace AzurePipelines.TestLogger
         {
             string completedDate = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ");
 
-            // Mark all parents as completed
-            string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
-                $@"{{
+            // Mark all parents as completed (but only if we actually created a parent)
+            if (TestRunEndpoint != null)
+            {
+                string parentRequest = "[ " + string.Join(", ", Parents.Values.Select(x =>
+                    $@"{{
                     ""id"": {x.Id},
                     ""state"": ""Completed"",
                     ""startedDate"": ""{x.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                     ""completedDate"": ""{completedDate}""
                 }}")) + " ]";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken).ConfigureAwait(false);
+                await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken).ConfigureAwait(false);
+            }
 
             // Mark the overall test run as completed
             string testRunRequest = $@"{{
