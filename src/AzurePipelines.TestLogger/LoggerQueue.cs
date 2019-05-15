@@ -142,7 +142,7 @@ namespace AzurePipelines.TestLogger
                 { "startedDate", StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ") },
                 { "isAutomated", true }
             };
-            string responseString = await _apiClient.SendAsync(HttpMethod.Post, null, "5.0-preview.2", request.ToJson(), cancellationToken).ConfigureAwait(false);
+            string responseString = await _apiClient.SendAsync(HttpMethod.Post, null, "5.0", request.ToJson(), cancellationToken).ConfigureAwait(false);
             using (StringReader reader = new StringReader(responseString))
             {
                 JsonObject response = JsonDeserializer.Deserialize(reader) as JsonObject;
@@ -202,7 +202,7 @@ namespace AzurePipelines.TestLogger
                     }
                     return properties.ToJson();
                 })) + " ]";
-                string responseString = await _apiClient.SendAsync(HttpMethod.Post, TestRunEndpoint, "5.0-preview.5", request, cancellationToken).ConfigureAwait(false);
+                string responseString = await _apiClient.SendAsync(HttpMethod.Post, TestRunEndpoint, "5.0", request, cancellationToken).ConfigureAwait(false);
                 using (StringReader reader = new StringReader(responseString))
                 {
                     JsonObject response = JsonDeserializer.Deserialize(reader) as JsonObject;
@@ -236,7 +236,7 @@ namespace AzurePipelines.TestLogger
                     ""subResults"": {subResults}
                 }}";
             })) + " ]";
-            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", request, cancellationToken).ConfigureAwait(false);
+            await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0", request, cancellationToken).ConfigureAwait(false);
         }
 
         private string GetTestResultJson(ITestResult testResult)
@@ -300,7 +300,7 @@ namespace AzurePipelines.TestLogger
                     ""startedDate"": ""{x.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                     ""completedDate"": ""{completedDate}""
                 }}")) + " ]";
-                await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0-preview.5", parentRequest, cancellationToken).ConfigureAwait(false);
+                await _apiClient.SendAsync(new HttpMethod("PATCH"), TestRunEndpoint, "5.0", parentRequest, cancellationToken).ConfigureAwait(false);
 
                 // Mark the overall test run as completed
                 string testRunRequest = $@"{{
@@ -308,7 +308,7 @@ namespace AzurePipelines.TestLogger
                         ""startedDate"": ""{StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
                         ""completedDate"": ""{completedDate}""
                     }}";
-                await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0-preview.2", testRunRequest, cancellationToken).ConfigureAwait(false);
+                await _apiClient.SendAsync(new HttpMethod("PATCH"), $"/{RunId}", "5.0", testRunRequest, cancellationToken).ConfigureAwait(false);
             }
         }
     }
