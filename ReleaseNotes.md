@@ -1,3 +1,7 @@
+# 1.0.4
+
+- [Feature] Added support for using default credentials instead of an access token for authentication.
+
 # 1.0.3
 
 - [Fix] Updated Azure API endpoints to 5.0 final versions since previews are 404 now.

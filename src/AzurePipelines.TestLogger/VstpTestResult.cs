@@ -13,6 +13,8 @@ namespace AzurePipelines.TestLogger
             _testResult = testResult;
         }
 
+        public Guid Id => _testResult.TestCase.Id;
+
         public string Source => _testResult.TestCase.Source;
 
         public string FullyQualifiedName => _testResult.TestCase.FullyQualifiedName;
@@ -28,5 +30,7 @@ namespace AzurePipelines.TestLogger
         public string ErrorMessage => _testResult.ErrorMessage;
 
         public IList<TestResultMessage> Messages => _testResult.Messages;
+
+        public string ComputerName => _testResult.ComputerName;
     }
 }

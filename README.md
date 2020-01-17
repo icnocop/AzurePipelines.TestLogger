@@ -20,12 +20,24 @@ This logger extensions allows you to send test results from a `dotnet test` sess
 
 ## Usage
 
-In order for the logger to authenticate against the Azure DevOps API you'll need to [expose the access token via an environment variable](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=vsts&tabs=yaml%2Cbatch#systemaccesstoken) in your Azure Pipelines `.yml` file:
+In order for the logger to optionally authenticate against the Azure DevOps API using an access token you'll need to [expose the access token via an environment variable](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=vsts&tabs=yaml%2Cbatch#systemaccesstoken) in your Azure Pipelines `.yml` file:
 
 ```
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 ```
+
+### Parameters
+
+| Key                         | Possible Values                                  | Required | Default Value | Description                                                                                                        |
+|-----------------------------|:------------------------------------------------:|:--------:|:-------------:|--------------------------------------------------------------------------------------------------------------------|
+| Verbose                     | True<br>False                                    | False    | False         | Indicates whether or not to output verbose information to the console.                                             |
+| UseDefaultCredentials       | True<br>False                                    | False    | False         | Indicates whether or not to use default credentials to authenticate against the Azure DevOps API.                  |
+| ApiVersion                  | \{Major}.\{Minor}[-preview[.\{ResourceVersion}]] | False    | 5.0           | The value passed to the `api-version` parameter in the query string when communicating with the Azure DevOps API. |
+| GroupTestResultsByClassName | True<br>False                                    | False    | True          | Indicates whether or not to group test results by their class name.                                                |
+
+Pass parameters to the logger using the following command line syntax:  
+`--logger AzurePipelines;Verbose=true;UseDefaultCredentials=true`
 
 ### Installing Into Your Project
 
