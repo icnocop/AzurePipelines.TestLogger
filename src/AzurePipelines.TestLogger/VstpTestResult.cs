@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace AzurePipelines.TestLogger
@@ -32,5 +33,7 @@ namespace AzurePipelines.TestLogger
         public IList<TestResultMessage> Messages => _testResult.Messages;
 
         public string ComputerName => _testResult.ComputerName;
+
+        public Collection<AttachmentSet> Attachments => _testResult.Attachments;
     }
 }

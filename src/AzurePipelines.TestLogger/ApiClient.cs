@@ -91,6 +91,10 @@ namespace AzurePipelines.TestLogger
             string requestBody = GetTestResults(testCaseTestResults, testResultsByParent, completedDate);
 
             await SendAsync(new HttpMethod("PATCH"), $"/{testRunId}/results", requestBody, cancellationToken).ConfigureAwait(false);
+
+            await UploadConsoleOutputsAndErrors(testRunId, testCaseTestResults, testResultsByParent, cancellationToken);
+
+            await UploadTestResultFiles(testRunId, testCaseTestResults, testResultsByParent, cancellationToken);
         }
 
         public async Task<int[]> AddTestCases(int testRunId, string[] testCaseNames, DateTime startedDate, string source, CancellationToken cancellationToken)
@@ -171,23 +175,10 @@ namespace AzurePipelines.TestLogger
                 }
 
                 string errorMessage = testResult.ErrorMessage;
-                StringBuilder stdErr = new StringBuilder();
-                StringBuilder stdOut = new StringBuilder();
-                foreach (TestResultMessage m in testResult.Messages)
-                {
-                    if (TestResultMessage.StandardOutCategory.Equals(m.Category, StringComparison.OrdinalIgnoreCase))
-                    {
-                        stdOut.AppendLine(m.Text);
-                    }
-                    else if (TestResultMessage.StandardErrorCategory.Equals(m.Category, StringComparison.OrdinalIgnoreCase))
-                    {
-                        stdErr.AppendLine(m.Text);
-                    }
-                }
 
-                if (!string.IsNullOrEmpty(errorMessage) || stdErr.Length > 0 || stdOut.Length > 0)
+                if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    properties.Add("errorMessage", $"{errorMessage}\n\n---\n\nSTDERR:\n\n{stdErr}\n\n---\n\nSTDOUT:\n\n{stdOut}");
+                    properties.Add("errorMessage", errorMessage);
                 }
             }
             else
@@ -209,14 +200,19 @@ namespace AzurePipelines.TestLogger
         {
         }
 
-        internal virtual async Task<string> SendAsync(HttpMethod method, string endpoint, string body, CancellationToken cancellationToken)
+        internal virtual async Task<string> SendAsync(HttpMethod method, string endpoint, string body, CancellationToken cancellationToken, string apiVersionString = null)
         {
             if (method == null)
             {
                 throw new ArgumentNullException(nameof(method));
             }
 
-            string requestUri = $"{_baseUrl}{endpoint}?api-version={_apiVersionString}";
+            if (string.IsNullOrEmpty(apiVersionString))
+            {
+                apiVersionString = _apiVersionString;
+            }
+
+            string requestUri = $"{_baseUrl}{endpoint}?api-version={apiVersionString}";
             HttpRequestMessage request = new HttpRequestMessage(method, requestUri);
             if (body != null)
             {
@@ -244,6 +240,103 @@ namespace AzurePipelines.TestLogger
             }
 
             return responseBody;
+        }
+
+        private async Task UploadConsoleOutputsAndErrors(int testRunId, Dictionary<string, TestResultParent> testCaseTestResults, IEnumerable<IGrouping<string, ITestResult>> testResultsByParent, CancellationToken cancellationToken)
+        {
+            foreach (IGrouping<string, ITestResult> testResultByParent in testResultsByParent)
+            {
+                TestResultParent parent = testCaseTestResults[testResultByParent.Key];
+
+                foreach (ITestResult testResult in testResultByParent.Select(x => x))
+                {
+                    StringBuilder stdErr = new StringBuilder();
+                    StringBuilder stdOut = new StringBuilder();
+                    foreach (TestResultMessage m in testResult.Messages)
+                    {
+                        if (TestResultMessage.StandardOutCategory.Equals(m.Category, StringComparison.OrdinalIgnoreCase))
+                        {
+                            stdOut.AppendLine(m.Text);
+                        }
+                        else if (TestResultMessage.StandardErrorCategory.Equals(m.Category, StringComparison.OrdinalIgnoreCase))
+                        {
+                            stdErr.AppendLine(m.Text);
+                        }
+                    }
+
+                    if (stdOut.Length > 0)
+                    {
+                        await AttachTextAsFile(testRunId, parent.Id, stdOut.ToString(), "console output.txt", null, cancellationToken);
+                    }
+
+                    if (stdErr.Length > 0)
+                    {
+                        await AttachTextAsFile(testRunId, parent.Id, stdErr.ToString(), "console error.txt", null, cancellationToken);
+                    }
+                }
+            }
+        }
+
+        private async Task UploadTestResultFiles(int testRunId, Dictionary<string, TestResultParent> testCaseTestResults, IEnumerable<IGrouping<string, ITestResult>> testResultsByParent, CancellationToken cancellationToken)
+        {
+            foreach (IGrouping<string, ITestResult> testResultByParent in testResultsByParent)
+            {
+                TestResultParent parent = testCaseTestResults[testResultByParent.Key];
+
+                foreach (ITestResult testResult in testResultByParent.Select(x => x))
+                {
+                    if (testResult.Attachments.Count > 0)
+                    {
+                        Console.WriteLine($"Attaching files to test run {testRunId} and test result {parent.Id}...");
+                    }
+
+                    foreach (AttachmentSet attachmentSet in testResult.Attachments)
+                    {
+                        if (attachmentSet.Attachments.Count > 0)
+                        {
+                            Console.WriteLine($"Attaching files in set {attachmentSet.DisplayName} {attachmentSet.Uri}...");
+                        }
+
+                        foreach (UriDataAttachment attachment in attachmentSet.Attachments)
+                        {
+                            Console.WriteLine($"Attaching file {attachment.Description} {attachment.Uri.LocalPath}...");
+
+                            await AttachFile(testRunId, parent.Id, attachment.Uri.LocalPath, attachment.Description, cancellationToken);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task AttachTextAsFile(int testRunId, int testResultId, string fileContents, string fileName, string comment, CancellationToken cancellationToken)
+        {
+            byte[] contentAsBytes = Encoding.UTF8.GetBytes(fileContents);
+            await AttachFile(testRunId, testResultId, contentAsBytes, fileName, comment, cancellationToken);
+        }
+
+        private async Task AttachFile(int testRunId, int testResultId, string filePath, string comment, CancellationToken cancellationToken)
+        {
+            byte[] contentAsBytes = File.ReadAllBytes(filePath);
+            string fileName = Path.GetFileName(filePath);
+            await AttachFile(testRunId, testResultId, contentAsBytes, fileName, comment, cancellationToken);
+        }
+
+        private async Task AttachFile(int testRunId, int testResultId, byte[] fileContents, string fileName, string comment, CancellationToken cancellationToken)
+        {
+            // https://docs.microsoft.com/en-us/rest/api/azure/devops/test/attachments/create%20test%20result%20attachment
+            // https://docs.microsoft.com/en-us/azure/devops/integrate/previous-apis/test/attachments?view=tfs-2015#attach-a-file-to-a-test-result
+            string contentAsBase64 = Convert.ToBase64String(fileContents);
+
+            Dictionary<string, object> props = new Dictionary<string, object>
+            {
+                { "stream", contentAsBase64 },
+                { "fileName", fileName },
+                { "comment", comment },
+                { "attachmentType", "GeneralAttachment" }
+            };
+
+            string requestBody = props.ToJson();
+            await SendAsync(new HttpMethod("POST"), $"/{testRunId}/results/{testResultId}/attachments", requestBody, cancellationToken, "2.0-preview").ConfigureAwait(false);
         }
     }
 }
