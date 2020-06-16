@@ -1,3 +1,10 @@
+# 1.1.0
+
+- [Feature] Added support for uploading test result files (#6, thanks @icnocop).
+- [Feature] Added support for uploading console outputs and errors as test result attachments (#6, thanks @icnocop).
+- [Feature] Added support for using default credentials instead of an access token for authentication (#3, #6, thanks @icnocop).
+- [Fix] Fixed some failing tests due to changed API version (#4, #5, thanks @icnocop).
+
 # 1.0.3
 
 - [Fix] Updated Azure API endpoints to 5.0 final versions since previews are 404 now.
