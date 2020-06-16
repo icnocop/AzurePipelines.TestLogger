@@ -10,6 +10,8 @@ namespace AzurePipelines.TestLogger.Tests
     [TestFixture]
     public class LoggerQueueTests
     {
+        private const string _dateFormatString = "yyyy-MM-ddTHH:mm:ss.FFFZ";
+
         [Test]
         public void CreateTestRunWithoutFilename()
         {
@@ -31,7 +33,7 @@ namespace AzurePipelines.TestLogger.Tests
                     $@"{{
                         ""name"": ""Unknown Test Source (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
-                        ""startedDate"": ""{loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                        ""startedDate"": ""{loggerQueue.StartedDate.ToString(_dateFormatString)}"",
                         ""isAutomated"": true
                     }}")
             });
@@ -61,7 +63,7 @@ namespace AzurePipelines.TestLogger.Tests
                     $@"{{
                         ""name"": ""Fizz.Buzz (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
-                        ""startedDate"": ""{loggerQueue.StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                        ""startedDate"": ""{loggerQueue.StartedDate.ToString(_dateFormatString)}"",
                         ""isAutomated"": true
                     }}")
             });
@@ -174,7 +176,7 @@ namespace AzurePipelines.TestLogger.Tests
             LoggerQueue loggerQueue = new LoggerQueue(apiClient, "987", "foo", "bar")
             {
                 Source = "Fizz.Buzz",
-                TestRunEndpoint = "/ep"
+                RunId = 1
             };
             loggerQueue.Parents.Add("FitzFixture", new TestResultParent(123));
             ITestResult[] testResults = new[]
@@ -202,7 +204,7 @@ namespace AzurePipelines.TestLogger.Tests
             {
                 new ClientMessage(
                     HttpMethod.Post,
-                    "/ep",
+                    "/1/results",
                     "5.0",
                     $@"[
                         {{
@@ -211,7 +213,7 @@ namespace AzurePipelines.TestLogger.Tests
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
-                            ""startedDate"": ""{loggerQueue.Parents["FooFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                            ""startedDate"": ""{loggerQueue.Parents["FooFixture"].StartedDate.ToString(_dateFormatString)}"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
@@ -222,7 +224,7 @@ namespace AzurePipelines.TestLogger.Tests
                             ""resultGroupType"": ""generic"",
                             ""outcome"": ""Passed"",
                             ""state"": ""InProgress"",
-                            ""startedDate"": ""{loggerQueue.Parents["FutzFixture.NestedFixture"].StartedDate.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ")}"",
+                            ""startedDate"": ""{loggerQueue.Parents["FutzFixture.NestedFixture"].StartedDate.ToString(_dateFormatString)}"",
                             ""automatedTestType"": ""UnitTest"",
                             ""automatedTestTypeId"": ""13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b"",
                             ""automatedTestStorage"": ""Fizz.Buzz""
