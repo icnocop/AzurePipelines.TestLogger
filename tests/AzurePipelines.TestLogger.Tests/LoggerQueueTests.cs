@@ -27,7 +27,7 @@ namespace AzurePipelines.TestLogger.Tests
                 new ClientMessage(
                     HttpMethod.Post,
                     null,
-                    "5.0-preview.2",
+                    "5.0",
                     $@"{{
                         ""name"": ""Unknown Test Source (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
@@ -57,7 +57,7 @@ namespace AzurePipelines.TestLogger.Tests
                 new ClientMessage(
                     HttpMethod.Post,
                     null,
-                    "5.0-preview.2",
+                    "5.0",
                     $@"{{
                         ""name"": ""Fizz.Buzz (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: bar, Agent: foo)"",
                         ""build"": {{""id"":""987""}},
@@ -203,7 +203,7 @@ namespace AzurePipelines.TestLogger.Tests
                 new ClientMessage(
                     HttpMethod.Post,
                     "/ep",
-                    "5.0-preview.5",
+                    "5.0",
                     $@"[
                         {{
                             ""testCaseTitle"": ""FooFixture"",
