@@ -196,7 +196,7 @@ Task("GitHub")
         {
             Name = semVersion,
             Body = string.Join(Environment.NewLine, releaseNotes.Notes),
-            TargetCommitish = "master"
+            TargetCommitish = "main"
         }).Result;
         
         foreach(var zipFile in GetFiles($"{ buildDir }/*.zip"))
