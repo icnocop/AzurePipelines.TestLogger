@@ -1,4 +1,4 @@
-Azure Pipelines logger extension for the [Visual Studio Test Platform](https://gtihub.com/microsoft/vstest).
+Azure Pipelines logger extension for the [Visual Studio Test Platform](https://github.com/microsoft/vstest).
 
 **NuGet**
 * [AzurePipelines.TestLogger](https://www.nuget.org/packages/AzurePipelines.TestLogger)
