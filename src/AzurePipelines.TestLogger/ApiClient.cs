@@ -159,9 +159,33 @@ namespace AzurePipelines.TestLogger
 
         protected Dictionary<string, object> GetTestResultProperties(ITestResult testResult)
         {
+            // https://docs.microsoft.com/en-us/rest/api/azure/devops/test/results/list?view=azure-devops-rest-6.0#testcaseresult
+            // outcome valid values = (Unspecified, None, Passed, Failed, Inconclusive, Timeout, Aborted, Blocked, NotExecuted, Warning, Error, NotApplicable, Paused, InProgress, NotImpacted)
+            string testOutcome;
+            switch (testResult.Outcome)
+            {
+                case TestOutcome.None:
+                    testOutcome = "None";
+                    break;
+                case TestOutcome.Passed:
+                    testOutcome = "Passed";
+                    break;
+                case TestOutcome.Failed:
+                    testOutcome = "Failed";
+                    break;
+                case TestOutcome.Skipped:
+                    testOutcome = "Inconclusive";
+                    break;
+                case TestOutcome.NotFound:
+                    testOutcome = "NotExecuted";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(testResult.Outcome), testResult.Outcome.ToString());
+            }
+
             Dictionary<string, object> properties = new Dictionary<string, object>
             {
-                { "outcome", testResult.Outcome.ToString() },
+                { "outcome", testOutcome },
                 { "computerName", testResult.ComputerName },
                 { "runBy", new Dictionary<string, object> { { "displayName", BuildRequestedFor } } }
             };
