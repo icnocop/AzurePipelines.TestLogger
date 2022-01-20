@@ -1,3 +1,7 @@
+# 1.1.1
+
+- [Feature] Added support for attachments from test run completion (#8, thanks @icnocop).
+
 # 1.1.0
 
 - [Feature] Added support for uploading test result files (#6, thanks @icnocop).
