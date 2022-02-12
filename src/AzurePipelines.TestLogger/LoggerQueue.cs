@@ -142,7 +142,6 @@ namespace AzurePipelines.TestLogger
             return await _apiClient.AddTestRun(testRun, cancellationToken).ConfigureAwait(false);
         }
 
-        // Internal for testing
         internal IEnumerable<IGrouping<string, ITestResult>> GroupTestResultsByParent(ITestResult[] testResults) =>
             testResults.GroupBy(x =>
             {
@@ -156,26 +155,22 @@ namespace AzurePipelines.TestLogger
                 }
 
                 // At this point, name should always have at least one '.' to represent the Class.Method
-                if (_groupTestResultsByClassName)
+                if (!_groupTestResultsByClassName)
                 {
-                    // We need to start at the opening method if there is one
-                    int startIndex = name.IndexOf('(');
-                    if (startIndex < 0)
-                    {
-                        startIndex = name.Length - 1;
-                    }
+                    return name;
+                }
 
-                    // remove the method name to get just the class name
-                    return name.Substring(0, name.LastIndexOf('.', startIndex));
-                }
-                else
+                // We need to start at the opening method if there is one
+                int startIndex = name.IndexOf('(');
+                if (startIndex < 0)
                 {
-                    // remove the class name to get just the method name
-                    return name.Substring(name.IndexOf('.') + 1);
+                    startIndex = name.Length - 1;
                 }
+
+                // remove the method name to get just the class name
+                return name.Substring(0, name.LastIndexOf('.', startIndex));
             });
 
-        // Internal for testing
         internal async Task CreateParents(IEnumerable<IGrouping<string, ITestResult>> testResultsByParent, CancellationToken cancellationToken)
         {
             // Find the parents that don't exist
