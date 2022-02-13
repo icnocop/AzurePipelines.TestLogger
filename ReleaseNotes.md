@@ -1,3 +1,7 @@
+# 1.2.0
+
+- [Fix] Fixed incorrect test results when multiple tests have the same method name, in different classes. (@icnocop).
+
 # 1.1.1
 
 - [Feature] Added support for attachments from test run completion (#8, thanks @icnocop).
