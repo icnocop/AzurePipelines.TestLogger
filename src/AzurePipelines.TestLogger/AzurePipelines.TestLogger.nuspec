@@ -4,14 +4,17 @@
     <id>AzurePipelines.TestLogger</id>
     <version>$version$</version>
     <title>AzurePipelines.TestLogger</title>
-    <authors>Dave Glick</authors>
-    <owners>Dave Glick</owners>
-    <projectUrl>https://github.com/daveaglick/AzurePipelines.TestLogger</projectUrl>
+    <authors>Dave Glick, Rami Abughazaleh</authors>
+    <owners>Rami Abughazaleh</owners>
+    <projectUrl>https://github.com/icnocop/AzurePipelines.TestLogger</projectUrl>
     <description>Azure Pipelines logger extension for the Visual Studio Test Platform.</description>
     <license type="expression">MIT</license>
     <contentFiles>
       <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
     </contentFiles>
+    <dependencies>
+      <dependency id="Semver" version="2.0.6" />
+    </dependencies>
   </metadata>
   <files>
     <file src="contentFiles\**" target="contentFiles" />

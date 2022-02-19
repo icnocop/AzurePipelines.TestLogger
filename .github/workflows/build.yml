@@ -5,17 +5,44 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    branches: [ main ]
+    inputs:
+      prerelease:
+        description: 'Is this build a pre-release?'
+        required: true
+        default: 'true'
 
 jobs:
   build:
 
     runs-on: windows-latest
 
+    env:
+      VERSION: 1.2.1
+
     strategy:
       matrix:
         Configuration: [Debug, Release]
 
     steps:
+    
+    - name: Set version number for pre-release
+      if: ${{ github.event.inputs.prerelease == '' || github.event.inputs.prerelease == 'true' }}
+      run: |
+        echo "SEM_VERSION=${{ env.VERSION }}-build-${{ github.RUN_NUMBER }}" >> $env:GITHUB_ENV
+
+    - name: Set version number for release
+      if: ${{ github.event.inputs.prerelease == 'false' }}
+      run: |
+        echo "SEM_VERSION=${{ env.VERSION }}" >> $env:GITHUB_ENV
+
+    - name: Read environmental variables
+      run: |
+        echo VERSION=${{ env.VERSION }}
+        echo GITHUB_RUN_NUMBER=${{ github.RUN_NUMBER }}
+        echo SEM_VERSION=${{ env.SEM_VERSION }}
+
     - name: Checkout
       uses: actions/checkout@v2
     
@@ -28,31 +55,57 @@ jobs:
       run: dotnet restore
       
     - name: Build
-      run: dotnet build --no-restore --configuration ${{ matrix.Configuration }}
+      run: dotnet build --no-restore --configuration ${{ matrix.Configuration }} -p:Version=${{ env.SEM_VERSION }} -p:AssemblyVersion=${{ env.VERSION }} -p:FileVersion=${{ env.VERSION }}
+
+    - name: Prepare for pack
+      run: |
+        mkdir .\src\AzurePipelines.TestLogger\contentFiles\any\any
+        copy ".\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5\*.dll" .\src\AzurePipelines.TestLogger\contentFiles\any\any
+
+    - name: Pack
+      run: dotnet pack .\src\AzurePipelines.TestLogger\AzurePipelines.TestLogger.csproj --configuration ${{ matrix.Configuration }} -p:NuspecProperties="Version=${{ env.SEM_VERSION }}" --no-restore --no-build --output:.\build -p:NuspecFile=AzurePipelines.TestLogger.nuspec
       
     - name: Test
-      run: dotnet test --no-build --verbosity normal --configuration ${{ matrix.Configuration }}
+      run: dotnet test --no-build --no-restore --verbosity normal --configuration ${{ matrix.Configuration }}
 
-    - name: Upload Build Artifacts
+    - name: Create zip
+      run: |
+        mkdir AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        copy ".\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5\*.*" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        copy "~\.nuget\packages\semver\2.0.6\lib\netstandard1.1\*.*" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        copy ".\LICENSE" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        copy ".\README.md" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        copy ".\ReleaseNotes.md" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+        tar -cf AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+
+    - name: Upload Build Artifact
       uses: actions/upload-artifact@v2.3.1
       with:
-        name: ${{ matrix.Configuration }}
-        path: .\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5\*.*
+        name: AzurePipelines.TestLogger ${{ env.SEM_VERSION }} ${{ matrix.Configuration }}
+        path: AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip
         if-no-files-found: error
 
-    - name: Add Semver.dll to Build Artifacts
+    - name: Publish GitHub Release
+      if: ${{ matrix.Configuration == 'Release' && github.event.inputs.prerelease == 'false' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        name: v${{ env.SEM_VERSION }}
+        draft: true
+        prerelease: false
+        fail_on_unmatched_files: true
+        files: |
+          AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip
+          .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
+
+    - name: Upload NuGet Package
       uses: actions/upload-artifact@v2.3.1
       with:
-        name: ${{ matrix.Configuration }}
-        path: ~\.nuget\packages\semver\2.0.6\lib\netstandard1.1\*.*
+        name: AzurePipelines.TestLogger ${{ env.SEM_VERSION }} ${{ matrix.Configuration }}.nupkg
+        path: .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
         if-no-files-found: error
 
-    - name: Add documentation to Build Artifacts
-      uses: actions/upload-artifact@v2.3.1
-      with:
-        name: ${{ matrix.Configuration }}
-        path: |
-          .\LICENSE
-          .\README.md
-          .\ReleaseNotes.md
-        if-no-files-found: error
+    - name: Publish NuGet Package
+      if: ${{ matrix.Configuration == 'Release' && github.event_name != 'pull_request' }}
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      run: dotnet nuget push .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg --api-key ${NUGET_KEY} --source https://api.nuget.org/v3/index.json

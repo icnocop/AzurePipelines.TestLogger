@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Dave Glick Rules" Description="These rules represent Dave Glick's preferences and enforce consistent code quality guidelines." ToolsVersion="15.0">
+<RuleSet Name="AzurePipelines.TestLogger Rules" Description="These rules represent preferences and enforce consistent code quality guidelines." ToolsVersion="15.0">
   <Include Path="basicdesignguidelinerules.ruleset" Action="Default" />
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1020" Action="Warning" />

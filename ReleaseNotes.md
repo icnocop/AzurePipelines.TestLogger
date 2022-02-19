@@ -1,3 +1,7 @@
+# 1.2.1
+
+- [Fix] Added Semver dependency to NuGet package. (#12, @icnocop).
+
 # 1.2.0
 
 - [Fix] Fixed incorrect test results when multiple tests have the same method name, in different classes. (@icnocop).
