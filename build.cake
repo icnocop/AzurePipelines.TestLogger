@@ -209,7 +209,7 @@ Task("GitHub")
         {
             Credentials = new Credentials(githubToken)
         };
-        var release = github.Repository.Release.Create("daveaglick", repositoryName, new NewRelease("v" + semVersion) 
+        var release = github.Repository.Release.Create("icnocop", repositoryName, new NewRelease("v" + semVersion) 
         {
             Name = semVersion,
             Body = string.Join(Environment.NewLine, releaseNotes.Notes),
