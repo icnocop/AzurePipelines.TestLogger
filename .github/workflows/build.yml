@@ -106,6 +106,4 @@ jobs:
 
     - name: Publish NuGet Package
       if: ${{ matrix.Configuration == 'Release' && github.event_name != 'pull_request' }}
-      env:
-        NUGET_KEY: ${{ secrets.NUGET_KEY }}
-      run: dotnet nuget push .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg --api-key ${NUGET_KEY} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json
