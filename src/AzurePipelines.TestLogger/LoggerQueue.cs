@@ -21,7 +21,7 @@ namespace AzurePipelines.TestLogger
 
         // Internal for testing
         internal Dictionary<string, TestResultParent> Parents { get; } = new Dictionary<string, TestResultParent>();
-        internal DateTime StartedDate { get; } = DateTime.UtcNow;
+        internal DateTime StartedDate { get; private set; }
         internal int RunId { get; set; }
         internal string Source { get; set; }
 
@@ -131,6 +131,8 @@ namespace AzurePipelines.TestLogger
         {
             string runName = $"{(string.IsNullOrEmpty(Source) ? "Unknown Test Source" : Source)} (OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription}, Job: {_jobName}, Agent: {_agentName})";
 
+            StartedDate = DateTime.UtcNow;
+
             TestRun testRun = new TestRun
             {
                 Name = runName,
@@ -198,19 +200,12 @@ namespace AzurePipelines.TestLogger
 
         private async Task SendTestsCompleted(VstpTestRunComplete testRunComplete, CancellationToken cancellationToken)
         {
-            DateTime completedDate = DateTime.UtcNow;
-
             // Mark all parents as completed (but only if we actually created a parent)
             if (RunId != 0)
             {
                 await _apiClient.UpdateTestResults(RunId, testRunComplete, cancellationToken);
 
-                if (Parents.Values.Count > 0)
-                {
-                    await _apiClient.MarkTestCasesCompleted(RunId, Parents.Values, completedDate, cancellationToken).ConfigureAwait(false);
-                }
-
-                await _apiClient.MarkTestRunCompleted(RunId, StartedDate, completedDate, cancellationToken).ConfigureAwait(false);
+                await _apiClient.MarkTestRunCompleted(RunId, testRunComplete.Aborted, DateTime.UtcNow, cancellationToken).ConfigureAwait(false);
             }
         }
     }

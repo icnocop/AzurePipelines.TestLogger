@@ -24,6 +24,10 @@ namespace AzurePipelines.TestLogger
 
         public TestOutcome Outcome => _testResult.Outcome;
 
+        public DateTimeOffset StartTime => _testResult.StartTime;
+
+        public DateTimeOffset EndTime => _testResult.EndTime;
+
         public TimeSpan Duration => _testResult.Duration;
 
         public string ErrorStackTrace => _testResult.ErrorStackTrace;

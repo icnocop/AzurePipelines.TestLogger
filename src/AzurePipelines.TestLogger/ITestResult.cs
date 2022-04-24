@@ -12,6 +12,8 @@ namespace AzurePipelines.TestLogger
         string FullyQualifiedName { get; }
         string DisplayName { get; }
         TestOutcome Outcome { get; }
+        DateTimeOffset StartTime { get; }
+        DateTimeOffset EndTime { get; }
         TimeSpan Duration { get; }
         string ErrorStackTrace { get; }
         string ErrorMessage { get; }

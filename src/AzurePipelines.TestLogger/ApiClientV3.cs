@@ -12,19 +12,6 @@ namespace AzurePipelines.TestLogger
         {
         }
 
-        internal override string GetTestCasesAsCompleted(IEnumerable<TestResultParent> testCases, DateTime completedDate)
-        {
-            // https://docs.microsoft.com/en-us/azure/devops/integrate/previous-apis/test/results?view=tfs-2015#add-test-results-to-a-test-run
-            return "[ " + string.Join(", ", testCases.Select(x =>
-                $@"{{
-                ""TestResult"": {{ ""Id"": {x.Id} }},
-                ""testCase"": {{ ""id"": {x.Id} }},
-                ""state"": ""Completed"",
-                ""startedDate"": ""{x.StartedDate.ToString(_dateFormatString)}"",
-                ""completedDate"": ""{completedDate.ToString(_dateFormatString)}""
-            }}")) + " ]";
-        }
-
         internal override string GetTestResults(
             Dictionary<string, TestResultParent> testCaseTestResults,
             IEnumerable<IGrouping<string, ITestResult>> testResultsByParent,

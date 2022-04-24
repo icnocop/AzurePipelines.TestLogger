@@ -28,5 +28,9 @@ namespace AzurePipelines.TestLogger.Tests
         public string ComputerName { get; set; }
 
         public Collection<AttachmentSet> Attachments { get; set; }
+
+        public DateTimeOffset StartTime { get; set; }
+
+        public DateTimeOffset EndTime { get; set; }
     }
 }

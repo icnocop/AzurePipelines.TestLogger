@@ -1,3 +1,7 @@
+# 1.2.2
+
+- [Fix] Fixed test result duration. (#15, @icnocop).
+
 # 1.2.1
 
 - [Fix] Added Semver dependency to NuGet package. (#12, @icnocop).

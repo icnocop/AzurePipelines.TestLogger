@@ -31,11 +31,6 @@ namespace AzurePipelines.TestLogger.Tests
             return Task.FromResult(_responseFunc == null ? string.Empty : _responseFunc(body));
         }
 
-        internal override string GetTestCasesAsCompleted(IEnumerable<TestResultParent> testCases, DateTime completedDate)
-        {
-            throw new NotImplementedException();
-        }
-
         internal override string GetTestResults(Dictionary<string, TestResultParent> testCaseTestResults, IEnumerable<IGrouping<string, ITestResult>> testResultsByParent, DateTime completedDate)
         {
             throw new NotImplementedException();
