@@ -14,18 +14,6 @@ namespace AzurePipelines.TestLogger
         {
         }
 
-        internal override string GetTestCasesAsCompleted(IEnumerable<TestResultParent> testCases, DateTime completedDate)
-        {
-            // https://docs.microsoft.com/en-us/rest/api/azure/devops/test/results/add?view=azure-devops-rest-5.0
-            return "[ " + string.Join(", ", testCases.Select(x =>
-                $@"{{
-                ""id"": {x.Id},
-                ""state"": ""Completed"",
-                ""startedDate"": ""{x.StartedDate.ToString(_dateFormatString)}"",
-                ""completedDate"": ""{completedDate.ToString(_dateFormatString)}""
-            }}")) + " ]";
-        }
-
         internal override string GetTestResults(
             Dictionary<string, TestResultParent> testCaseTestResults,
             IEnumerable<IGrouping<string, ITestResult>> testResultsByParent,

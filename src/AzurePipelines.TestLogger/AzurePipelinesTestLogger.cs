@@ -113,7 +113,11 @@ namespace AzurePipelines.TestLogger
 
             // Register for the events
             events.TestRunMessage += TestMessageHandler;
+
+            // when a single test has finished
             events.TestResult += TestResultHandler;
+
+            // when the entire test run is finished
             events.TestRunComplete += TestRunCompleteHandler;
         }
 
@@ -137,6 +141,6 @@ namespace AzurePipelines.TestLogger
             _queue.Enqueue(new VstpTestResult(e.Result));
 
         private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e) =>
-            _queue.Flush(new VstpTestRunComplete(e.AttachmentSets));
+            _queue.Flush(new VstpTestRunComplete(e.IsAborted || e.IsCanceled, e.AttachmentSets));
     }
 }

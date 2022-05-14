@@ -59,13 +59,6 @@ namespace AzurePipelines.TestLogger
             return this;
         }
 
-        public async Task<string> MarkTestCasesCompleted(int testRunId, IEnumerable<TestResultParent> testCases, DateTime completedDate, CancellationToken cancellationToken)
-        {
-            string requestBody = GetTestCasesAsCompleted(testCases, completedDate);
-
-            return await SendAsync(new HttpMethod("PATCH"), $"/{testRunId}/results", requestBody, cancellationToken).ConfigureAwait(false);
-        }
-
         public async Task<int> AddTestRun(TestRun testRun, CancellationToken cancellationToken)
         {
             string requestBody = new Dictionary<string, object>
@@ -145,12 +138,11 @@ namespace AzurePipelines.TestLogger
             }
         }
 
-        public async Task MarkTestRunCompleted(int testRunId, DateTime startedDate, DateTime completedDate, CancellationToken cancellationToken)
+        public async Task MarkTestRunCompleted(int testRunId, bool aborted, DateTime completedDate, CancellationToken cancellationToken)
         {
             // Mark the overall test run as completed
             string requestBody = $@"{{
-                ""state"": ""Completed"",
-                ""startedDate"": ""{startedDate.ToString(_dateFormatString)}"",
+                ""state"": ""{(aborted ? "Aborted" : "Completed")}"",
                 ""completedDate"": ""{completedDate.ToString(_dateFormatString)}""
             }}";
 
@@ -194,6 +186,9 @@ namespace AzurePipelines.TestLogger
 
             if (testResult.Outcome == TestOutcome.Passed || testResult.Outcome == TestOutcome.Failed)
             {
+                properties.Add("startedDate", testResult.StartTime.ToString(_dateFormatString));
+                properties.Add("completedDate", testResult.EndTime.ToString(_dateFormatString));
+
                 long duration = Convert.ToInt64(testResult.Duration.TotalMilliseconds);
                 properties.Add("durationInMs", duration.ToString(CultureInfo.InvariantCulture));
 
@@ -217,8 +212,6 @@ namespace AzurePipelines.TestLogger
 
             return properties;
         }
-
-        internal abstract string GetTestCasesAsCompleted(IEnumerable<TestResultParent> testCases, DateTime completedDate);
 
         internal abstract string GetTestResults(
             Dictionary<string, TestResultParent> testCaseTestResults,
