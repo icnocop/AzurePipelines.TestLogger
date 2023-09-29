@@ -19,7 +19,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      VERSION: 1.2.2
+      VERSION: 1.2.3
 
     strategy:
       matrix:
@@ -44,10 +44,10 @@ jobs:
         echo SEM_VERSION=${{ env.SEM_VERSION }}
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4.1.0
     
     - name: Setup .NET Core 2.1
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: 2.1
 
@@ -63,23 +63,19 @@ jobs:
         copy ".\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5\*.dll" .\src\AzurePipelines.TestLogger\contentFiles\any\any
 
     - name: Pack
-      run: dotnet pack .\src\AzurePipelines.TestLogger\AzurePipelines.TestLogger.csproj --configuration ${{ matrix.Configuration }} -p:NuspecProperties="Version=${{ env.SEM_VERSION }}" --no-restore --no-build --output:.\build -p:NuspecFile=AzurePipelines.TestLogger.nuspec
+      run: dotnet pack .\src\AzurePipelines.TestLogger\AzurePipelines.TestLogger.csproj --configuration ${{ matrix.Configuration }} -p:NuspecProperties="Version=${{ env.SEM_VERSION }}" --no-restore --no-build --output:.\build -p:NuspecFile=..\AzurePipelines.TestLogger\AzurePipelines.TestLogger.nuspec
       
     - name: Test
       run: dotnet test --no-build --no-restore --verbosity normal --configuration ${{ matrix.Configuration }}
 
-    - name: Create zip
-      run: |
-        mkdir AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        copy ".\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5\*.*" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        copy "~\.nuget\packages\semver\2.0.6\lib\netstandard1.1\*.*" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        copy ".\LICENSE" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        copy ".\README.md" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        copy ".\ReleaseNotes.md" .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
-        tar -cf AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip .\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}
+    - name: Create Zip
+      uses: vimtor/action-zip@v1.1
+      with:
+        files: LICENSE README.md ReleaseNotes.md .\src\AzurePipelines.TestLogger\bin\${{ matrix.Configuration }}\netstandard1.5
+        dest: AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip
 
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3.1.3
       with:
         name: AzurePipelines.TestLogger ${{ env.SEM_VERSION }} ${{ matrix.Configuration }}
         path: AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip
@@ -95,15 +91,15 @@ jobs:
         fail_on_unmatched_files: true
         files: |
           AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.zip
-          .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
+          .\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
 
     - name: Upload NuGet Package
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3.1.3
       with:
         name: AzurePipelines.TestLogger ${{ env.SEM_VERSION }} ${{ matrix.Configuration }}.nupkg
-        path: .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
+        path: .\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg
         if-no-files-found: error
 
     - name: Publish NuGet Package
       if: ${{ matrix.Configuration == 'Release' && github.event_name != 'pull_request' }}
-      run: dotnet nuget push .\src\AzurePipelines.TestLogger\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push .\build\AzurePipelines.TestLogger.${{ env.SEM_VERSION }}.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json

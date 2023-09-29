@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using AzurePipelines.TestLogger.Json;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;

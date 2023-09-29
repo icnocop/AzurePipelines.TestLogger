@@ -47,5 +47,10 @@ namespace AzurePipelines.TestLogger.Tests
 
         private static string RemoveWhiteSpace(string str) =>
             string.Concat(str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
+
+        public override string ToString()
+        {
+            return $"Method: {Method}, Endpoint: {Endpoint}, ApiVersion: {ApiVersion}, Body: {Body}";
+        }
     }
 }
