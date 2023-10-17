@@ -4,16 +4,12 @@
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="contentFiles\**" />
-    <EmbeddedResource Remove="contentFiles\**" />
-    <None Remove="contentFiles\**" />
-  </ItemGroup>
-    
+
   <ItemGroup>
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" />
-    <PackageReference Include="Semver" Version="2.0.6" />
+    <PackageReference Include="Semver" Version="2.0.6" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,4 +20,8 @@
       <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  <Target Name="CopyFileFromNuGetPackage" AfterTargets="Build">
+    <Copy SourceFiles="$(PkgSemver)\lib\netstandard1.1\Semver.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+
 </Project>

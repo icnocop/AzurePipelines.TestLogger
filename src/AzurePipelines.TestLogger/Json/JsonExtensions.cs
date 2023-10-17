@@ -83,5 +83,46 @@ namespace AzurePipelines.TestLogger.Json
 
             return sb.ToString();
         }
+
+        /// <summary>
+        /// Indent JSON string.
+        /// </summary>
+        /// <param name="input">The JSON string.</param>
+        /// <returns>The indented JSON string.</returns>
+        public static string Indented(this string input)
+        {
+            int level = 0;
+            StringBuilder result = new StringBuilder();
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+
+                if (c == '{' || c == '[')
+                {
+                    result.Append(c);
+                    result.AppendLine();
+                    result.Append(new string(' ', ++level * 2));
+                }
+                else if (c == '}' || c == ']')
+                {
+                    result.AppendLine();
+                    result.Append(new string(' ', --level * 2));
+                    result.Append(c);
+                }
+                else if (c == ',')
+                {
+                    result.Append(c);
+                    result.AppendLine();
+                    result.Append(new string(' ', level * 2));
+                }
+                else
+                {
+                    result.Append(c);
+                }
+            }
+
+            return result.ToString();
+        }
     }
 }

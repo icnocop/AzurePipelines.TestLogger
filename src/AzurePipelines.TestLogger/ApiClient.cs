@@ -248,7 +248,7 @@ namespace AzurePipelines.TestLogger
 
             if (Verbose)
             {
-                Console.WriteLine($"Request:\n{method} {requestUri}\n{body}\n\nResponse:\n{response.StatusCode}\n{responseBody}");
+                Console.WriteLine($"Request:\n{method} {requestUri}\n{body.Indented()}\n\nResponse:\n{response.StatusCode}\n{responseBody.Indented()}\n");
             }
 
             try

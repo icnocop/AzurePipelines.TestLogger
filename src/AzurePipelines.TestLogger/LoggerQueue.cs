@@ -43,24 +43,17 @@ namespace AzurePipelines.TestLogger
             // Cancel any idle consumers and let them return
             _queue.Cancel();
 
-            try
-            {
-                // Any active consumer will circle back around and batch post the remaining queue
-                _consumeTask.Wait(TimeSpan.FromSeconds(60));
+            // Any active consumer will circle back around and batch post the remaining queue
+            _consumeTask.Wait(TimeSpan.FromSeconds(60));
 
-                // Update the run and parents to a completed state
-                SendTestsCompleted(testRunComplete, _consumeTaskCancellationSource.Token).Wait(TimeSpan.FromSeconds(60));
+            // Update the run and parents to a completed state
+            SendTestsCompleted(testRunComplete, _consumeTaskCancellationSource.Token).Wait(TimeSpan.FromSeconds(60));
 
-                // Cancel any active HTTP requests if still hasn't finished flushing
-                _consumeTaskCancellationSource.Cancel();
-                if (!_consumeTask.Wait(TimeSpan.FromSeconds(10)))
-                {
-                    throw new TimeoutException("Cancellation didn't happen quickly");
-                }
-            }
-            catch (Exception ex)
+            // Cancel any active HTTP requests if still hasn't finished flushing
+            _consumeTaskCancellationSource.Cancel();
+            if (!_consumeTask.Wait(TimeSpan.FromSeconds(10)))
             {
-                Console.WriteLine(ex);
+                throw new TimeoutException("Cancellation didn't happen quickly");
             }
         }
 
@@ -68,47 +61,47 @@ namespace AzurePipelines.TestLogger
         {
             while (true)
             {
-                ITestResult[] nextItems = await _queue.TakeAsync().ConfigureAwait(false);
-
-                if (nextItems == null || nextItems.Length == 0)
+                try
                 {
-                    // Queue is canceling and is empty
-                    return;
+                    ITestResult[] nextItems = await _queue.TakeAsync().ConfigureAwait(false);
+
+                    if (nextItems == null || nextItems.Length == 0)
+                    {
+                        // Queue is canceling and is empty
+                        return;
+                    }
+
+                    await SendResultsAsync(nextItems, cancellationToken).ConfigureAwait(false);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
                 }
-
-                await SendResultsAsync(nextItems, cancellationToken).ConfigureAwait(false);
-
-                if (cancellationToken.IsCancellationRequested)
+                catch (Exception ex)
                 {
-                    return;
+                    Console.WriteLine(ex);
                 }
             }
         }
 
         private async Task SendResultsAsync(ITestResult[] testResults, CancellationToken cancellationToken)
         {
-            try
+            // Create a test run if we need it
+            if (RunId == 0)
             {
-                // Create a test run if we need it
-                if (RunId == 0)
-                {
-                    Source = GetSource(testResults);
-                    RunId = await CreateTestRun(cancellationToken).ConfigureAwait(false);
-                }
-
-                // Group results by their parent
-                IEnumerable<IGrouping<string, ITestResult>> testResultsByParent = GroupTestResultsByParent(testResults);
-
-                // Create any required parent nodes
-                await CreateParents(testResultsByParent, cancellationToken).ConfigureAwait(false);
-
-                // Update parents with the test results
-                await SendTestResults(testResultsByParent, cancellationToken).ConfigureAwait(false);
+                Source = GetSource(testResults);
+                RunId = await CreateTestRun(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception)
-            {
-                // Eat any communications exceptions
-            }
+
+            // Group results by their parent
+            IEnumerable<IGrouping<string, ITestResult>> testResultsByParent = GroupTestResultsByParent(testResults);
+
+            // Create any required parent nodes
+            await CreateParents(testResultsByParent, cancellationToken).ConfigureAwait(false);
+
+            // Update parents with the test results
+            await SendTestResults(testResultsByParent, cancellationToken).ConfigureAwait(false);
         }
 
         // Internal for testing

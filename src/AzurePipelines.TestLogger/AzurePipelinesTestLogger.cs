@@ -28,6 +28,8 @@ namespace AzurePipelines.TestLogger
 
         public AzurePipelinesTestLogger()
         {
+            // For debugging purposes
+            // System.Diagnostics.Debugger.Launch();
             _environmentVariableProvider = new EnvironmentVariableProvider();
             _apiClientFactory = new ApiClientFactory();
         }
@@ -137,10 +139,28 @@ namespace AzurePipelines.TestLogger
             // Add code to handle message
         }
 
-        private void TestResultHandler(object sender, TestResultEventArgs e) =>
-            _queue.Enqueue(new VstpTestResult(e.Result));
+        private void TestResultHandler(object sender, TestResultEventArgs e)
+        {
+            try
+            {
+                _queue.Enqueue(new VstpTestResult(e.Result));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
 
-        private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e) =>
-            _queue.Flush(new VstpTestRunComplete(e.IsAborted || e.IsCanceled, e.AttachmentSets));
+        private void TestRunCompleteHandler(object sender, TestRunCompleteEventArgs e)
+        {
+            try
+            {
+                _queue.Flush(new VstpTestRunComplete(e.IsAborted || e.IsCanceled, e.AttachmentSets));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
     }
 }
